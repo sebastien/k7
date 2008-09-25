@@ -5,12 +5,20 @@
 #define  V8S(s)                         v8::String::New(s)
 #define  V8_Set(target,slot,value)      target->Set(V8S(slot),value)  
 #define  V8_Fn(f)                       v8::FunctionTemplate::New(f)
-#define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args)
+#define  ARG_int(c)                     (int)(args[c]->Int32Value())
+#define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) 
+#define  EXPECT_ARG_COUNT(predicate)    if ( args.Length() predicate ) {} else {}
 
 using namespace v8;
 
 bool ExecuteString(v8::Handle<v8::String> source, v8::Handle<v8::Value> name, bool print_result);
 
+FUNCTION(Posix_fopen) {
+	v8::HandleScope handlescope;
+	EXPECT_ARG_COUNT(==1)
+	int fd = ARG_int(0);
+	return v8::Undefined();
+}
 
 // The callback that is invoked by v8 whenever the JavaScript 'print'
 // function is called.  Prints its arguments on stdout separated by
