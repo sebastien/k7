@@ -16,6 +16,13 @@ using namespace v8;
 
 bool ExecuteString(v8::Handle<v8::String> source, v8::Handle<v8::Value> name, bool print_result);
 
+v8::Handle<v8::ObjectTemplate>  EnsureModule (v8::Handle<v8::ObjectTemplate> global, const char* moduleName) {
+	printf("Ensure %s\n", moduleName);
+	return global;
+}
+
+// MODULE("system.posix")
+
 FUNCTION(Posix_fopen)
 	v8::HandleScope handlescope;
 	EXPECT_ARG_COUNT(==1)
@@ -40,8 +47,9 @@ FUNCTION(Print)
 	return V8_undefined;
 END
 
-void SetupBuiltIns (Handle<ObjectTemplate> self) {
-	V8_Set(self, "print", V8_Fn(Print));
+void SetupBuiltIns (Handle<ObjectTemplate> global) {
+	Handle<ObjectTemplate> module = EnsureModule(global, "system.posix");
+	V8_Set(global, "print", V8_Fn(Print));
 }
 
 v8::Handle<v8::String> ReadFile(const char* name) {
