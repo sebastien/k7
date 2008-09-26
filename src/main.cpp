@@ -2,41 +2,43 @@
 #include <stdio.h>
 #include <string.h>
 
-#define  V8S(s)                         v8::String::New(s)
-#define  V8_Set(target,slot,value)      target->Set(V8S(slot),value)  
+#define  V8_s(s)                        v8::String::New(s)
+#define  V8_undefined                   v8::Undefined()
+#define  V8_Set(target,slot,value)      target->Set(V8_s(slot),value)  
 #define  V8_Fn(f)                       v8::FunctionTemplate::New(f)
 #define  ARG_int(c)                     (int)(args[c]->Int32Value())
-#define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) 
+#define  ARG_str(v,i)                   v8::String::AsciiValue str(args[i])
+#define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) { 
+#define  END                            }
 #define  EXPECT_ARG_COUNT(predicate)    if ( args.Length() predicate ) {} else {}
 
 using namespace v8;
 
 bool ExecuteString(v8::Handle<v8::String> source, v8::Handle<v8::Value> name, bool print_result);
 
-FUNCTION(Posix_fopen) {
+FUNCTION(Posix_fopen)
 	v8::HandleScope handlescope;
 	EXPECT_ARG_COUNT(==1)
 	int fd = ARG_int(0);
-	return v8::Undefined();
-}
+	return V8_undefined;
+END
 
 // The callback that is invoked by v8 whenever the JavaScript 'print'
 // function is called.  Prints its arguments on stdout separated by
 // spaces and ending with a newline.
 //
-FUNCTION(Print) {
-//v8::Handle<v8::Value> Print(const v8::Arguments& args) {
+FUNCTION(Print)
 	bool first = true;
 	for (int i = 0; i < args.Length(); i++) {
-		v8::HandleScope handle_scope;
+		v8::HandleScope handlescope;
 		if (first) { first = false; }
 		else       { printf(" "); }
-		v8::String::AsciiValue str(args[i]);
+		ARG_str(str,i);
 		printf("%s", *str);
 	}
 	printf("\n");
-	return v8::Undefined();
-}
+	return V8_undefined;
+END
 
 void SetupBuiltIns (Handle<ObjectTemplate> self) {
 	V8_Set(self, "print", V8_Fn(Print));
