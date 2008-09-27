@@ -4,17 +4,21 @@
 //	INTERNAL_FIELD(file)
 //END
 
-Handle<Object> posix_FILE(FILE* file) {
+#define OBJECT(name,fields,...) \
+Handle<Object> name(__VA_ARGS__) { \
+	HandleScope handle_scope;\
+	Handle<FunctionTemplate>   fun_template = FunctionTemplate::New();\
+	Handle<ObjectTemplate>   obj_template = fun_template->InstanceTemplate();\
+	obj_template->SetInternalFieldCount(fields);\
+	Handle<Object> self = obj_template->NewInstance();\
 
-	HandleScope handle_scope;
-	Handle<ObjectTemplate>   obj_template = ObjectTemplate::New();
-	obj_template->SetInternalFieldCount(1);
-	Handle<Object> self = obj_template->NewInstance();
+#define INTERNAL(i,value) \
+	self->SetInternalField(i, External::New((void*)value));
 
-	//self->SetInternalField(0, External::New((void*)file));
-
+OBJECT(posix_FILE,1,FILE* file)
+	INTERNAL(0,file)
 	return self;
-}
+END
 
 FUNCTION(posix_time)
 	EXPECT_ARGS(==0)
