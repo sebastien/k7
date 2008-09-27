@@ -16,19 +16,39 @@ using namespace v8;
 
 bool ExecuteString(v8::Handle<v8::String> source, v8::Handle<v8::Value> name, bool print_result);
 
-v8::Handle<v8::ObjectTemplate>  EnsureModule (v8::Handle<v8::ObjectTemplate> global, const char* moduleName) {
+v8::Handle<v8::Object>  EnsureModule (v8::Handle<v8::Object> global, const char* moduleName) {
 	printf("Ensure %s\n", moduleName);
+	Handle<ObjectTemplate> module;
+	// FIXME: I want to test the global and know if it has the field or not
+	/*
+	if (global->Has(V8_s(moduleName))) {
+		module = global->Get(V8_s(moduleName))
+	} else {
+		module = ObjectTemplate::New();
+		module->Set(String::New("name"), V8_s(moduleName))
+		V8_Set(global,moduleName,module)
+	}
+	*/
 	return global;
 }
 
 // MODULE("system.posix")
 
+
 FUNCTION(Posix_fopen)
 	v8::HandleScope handlescope;
-	EXPECT_ARG_COUNT(==1)
-	int fd = ARG_int(0);
+	//EXPECT_ARG_COUNT(==1)
+	//int fd = ARG_int(0);
 	return V8_undefined;
 END
+
+Handle<Value> Posix_instantiate() {
+    HandleScope scope;
+    Handle<Object> target = Object::New();
+    Handle<FunctionTemplate> ft = FunctionTemplate::New(Posix_fopen);
+    target->Set(String::New("fopen"),ft->GetFunction());
+    return target;
+}
 
 // The callback that is invoked by v8 whenever the JavaScript 'print'
 // function is called.  Prints its arguments on stdout separated by
@@ -47,9 +67,11 @@ FUNCTION(Print)
 	return V8_undefined;
 END
 
-void SetupBuiltIns (Handle<ObjectTemplate> global) {
-	Handle<ObjectTemplate> module = EnsureModule(global, "system.posix");
-	V8_Set(global, "print", V8_Fn(Print));
+void SetupBuiltIns (Handle<Object> global) {
+	//Handle<Object> module = EnsureModule(global, "systemposix");
+	global->Set(V8_s("posix"), Posix_instantiate());
+	global->Set(V8_s("print"), FunctionTemplate::New(Print)->GetFunction());
+	//V8_Set(module, "print", V8_Fn(Print));
 }
 
 v8::Handle<v8::String> ReadFile(const char* name) {
@@ -126,14 +148,13 @@ int main(int argc, char ** argv) {
 
 	// Create a template for the global object.
 	v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
-	SetupBuiltIns(global);
 
 	// Create a new execution environment containing the built-in
 	// functions
 	v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
-
 	// Enter the newly created execution environment.
 	v8::Context::Scope context_scope(context);
+	SetupBuiltIns(context->Global());
 
 	bool run_shell = (argc == 1);
 	for (int i = 1; i < argc; i++) {
