@@ -9,5 +9,5 @@ PRODUCT               =k7
 
 
 all:
-	g++ $(INCLUDES) src/main.cpp -o $(PRODUCT) $(BINLIB_V8) $(LIBS)
+	g++ $(INCLUDES) src/*.cpp -o $(PRODUCT) $(BINLIB_V8) $(LIBS)
 

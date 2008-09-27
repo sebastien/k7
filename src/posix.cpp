@@ -1,4 +1,8 @@
 #include "macros.h"
+#include <stdlib.h>
+#include <time.h>
+
+MODULE(posix)
 
 OBJECT(posix_FILE,1,FILE* file)
 	INTERNAL(0,file)

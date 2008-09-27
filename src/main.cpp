@@ -1,35 +1,15 @@
 #include <v8.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
-
-
+#include "macros.h"
+#include "modules.h"
 
 using namespace v8;
 
-bool ExecuteString(v8::Handle<v8::String> source, v8::Handle<v8::Value> name, bool print_result);
-
-v8::Handle<v8::Object>  EnsureModule (v8::Handle<v8::Object> global, const char* moduleName) {
-	printf("Ensure %s\n", moduleName);
-	Handle<ObjectTemplate> module;
-	// FIXME: I want to test the global and know if it has the field or not
-	/*
-	if (global->Has(JS_str(moduleName))) {
-		module = global->Get(JS_str(moduleName))
-	} else {
-		module = ObjectTemplate::New();
-		module->Set(String::New("name"), JS_str(moduleName))
-		JSOBJ_set(global,moduleName,module)
-	}
-	*/
-	return global;
-}
-
-#include "posix.cpp"
-
-// MODULE("system.posix")
-
-
+bool ExecuteString(v8::Handle<v8::String> source,
+                   v8::Handle<v8::Value> name,
+                   bool print_result);
 // The callback that is invoked by v8 whenever the JavaScript 'print'
 // function is called.  Prints its arguments on stdout separated by
 // spaces and ending with a newline.
@@ -48,8 +28,9 @@ FUNCTION(Print)
 END
 
 void SetupBuiltIns (Handle<Object> global) {
-	//Handle<Object> module = EnsureModule(global, "systemposix");
-	global->Set(JS_str("posix"), instantiate());
+	Handle<Object> module = EnsureModule(global, "system.posix");
+	 module = EnsureModule(global, "system.core");
+	//global->Set(JS_str("posix"), instantiate());
 	global->Set(JS_str("print"), FunctionTemplate::New(Print)->GetFunction());
 	//V8_Set(module, "print", V8_FT(Print));
 }
@@ -73,6 +54,7 @@ v8::Handle<v8::String> ReadFile(const char* name) {
   delete[] chars;
   return result;
 }
+
 
 
 // The read-eval-execute loop of the shell.
