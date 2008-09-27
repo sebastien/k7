@@ -1,19 +1,4 @@
-#define MODULE posix
-
-//OBJECT(posix_FILE, FILE* file)
-//	INTERNAL_FIELD(file)
-//END
-
-#define OBJECT(name,fields,...) \
-Handle<Object> name(__VA_ARGS__) { \
-	HandleScope handle_scope;\
-	Handle<FunctionTemplate>   fun_template = FunctionTemplate::New();\
-	Handle<ObjectTemplate>   obj_template = fun_template->InstanceTemplate();\
-	obj_template->SetInternalFieldCount(fields);\
-	Handle<Object> self = obj_template->NewInstance();\
-
-#define INTERNAL(i,value) \
-	self->SetInternalField(i, External::New((void*)value));
+#include "macros.h"
 
 OBJECT(posix_FILE,1,FILE* file)
 	INTERNAL(0,file)
@@ -24,9 +9,6 @@ FUNCTION(posix_time)
 	ARG_COUNT(0)
 	return JS_int(time(NULL));
 END
-
-#define EXTERNAL(type,name,object,indice) \
-	type name = (type) (Local<External>::Cast(object->GetInternalField(0))->Value());
 
 FUNCTION(posix_fwrite)
 	ARG_str(data,0);
@@ -52,9 +34,10 @@ FUNCTION(posix_fclose)
 	return JS_int(fclose(file));
 END
 
-START_INIT
+INIT
 	BIND("time",   posix_time);
 	BIND("fopen",  posix_fopen);
 	BIND("fwrite", posix_fwrite);
 	BIND("fclose", posix_fclose);
-END_INIT
+	return module;
+END

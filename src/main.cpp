@@ -3,23 +3,7 @@
 #include <string.h>
 #include <time.h>
 
-#define  V8_s(s)                        v8::String::New(s)
-#define  JS_int(s)                      v8::Integer::New(s)
-#define  V8_undefined                   v8::Undefined()
-#define  V8_Set(target,slot,value)      target->Set(V8_s(slot),value)  
-#define  V8_Fn(f)                       v8::FunctionTemplate::New(f)
-#define  ARG_int(n,c)                   int n=(int)(args[c]->Int32Value())
-#define  ARG_str(v,i)                   v8::String::AsciiValue v(args[i])
-#define  ARG_obj(v,i)                   Local<Object> v=args[i]->ToObject();
-#define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) { v8::HandleScope handlescope;
-#define  END                            }
-#define  START_INIT                           v8::Handle<v8::Value> instantiate() {\
-    HandleScope handle_scope; \
-    Handle<Object> module = Object::New();
-#define  END_INIT                       return module; }
-#define  BIND(s,v)                   module->Set(V8_s(s),FunctionTemplate::New(v)->GetFunction());
 
-#define  ARG_COUNT(c)    if ( args.Length() != 0 ) {} 
 
 using namespace v8;
 
@@ -30,12 +14,12 @@ v8::Handle<v8::Object>  EnsureModule (v8::Handle<v8::Object> global, const char*
 	Handle<ObjectTemplate> module;
 	// FIXME: I want to test the global and know if it has the field or not
 	/*
-	if (global->Has(V8_s(moduleName))) {
-		module = global->Get(V8_s(moduleName))
+	if (global->Has(JS_str(moduleName))) {
+		module = global->Get(JS_str(moduleName))
 	} else {
 		module = ObjectTemplate::New();
-		module->Set(String::New("name"), V8_s(moduleName))
-		V8_Set(global,moduleName,module)
+		module->Set(String::New("name"), JS_str(moduleName))
+		JSOBJ_set(global,moduleName,module)
 	}
 	*/
 	return global;
@@ -60,14 +44,14 @@ FUNCTION(Print)
 		printf("%s", *str);
 	}
 	printf("\n");
-	return V8_undefined;
+	return JS_undefined;
 END
 
 void SetupBuiltIns (Handle<Object> global) {
 	//Handle<Object> module = EnsureModule(global, "systemposix");
-	global->Set(V8_s("posix"), instantiate());
-	global->Set(V8_s("print"), FunctionTemplate::New(Print)->GetFunction());
-	//V8_Set(module, "print", V8_Fn(Print));
+	global->Set(JS_str("posix"), instantiate());
+	global->Set(JS_str("print"), FunctionTemplate::New(Print)->GetFunction());
+	//V8_Set(module, "print", V8_FT(Print));
 }
 
 v8::Handle<v8::String> ReadFile(const char* name) {
