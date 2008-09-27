@@ -4,12 +4,13 @@
 #include <time.h>
 
 #define  V8_s(s)                        v8::String::New(s)
-#define  V8_int(s)                      v8::Integer::New(s)
+#define  JS_int(s)                      v8::Integer::New(s)
 #define  V8_undefined                   v8::Undefined()
 #define  V8_Set(target,slot,value)      target->Set(V8_s(slot),value)  
 #define  V8_Fn(f)                       v8::FunctionTemplate::New(f)
-#define  ARG_int(c)                     (int)(args[c]->Int32Value())
+#define  ARG_int(n,c)                   int n=(int)(args[c]->Int32Value())
 #define  ARG_str(v,i)                   v8::String::AsciiValue v(args[i])
+#define  ARG_obj(v,i)                   Local<Object> v=args[i]->ToObject();
 #define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) { v8::HandleScope handlescope;
 #define  END                            }
 #define  START_INIT                           v8::Handle<v8::Value> instantiate() {\
@@ -18,7 +19,7 @@
 #define  END_INIT                       return module; }
 #define  BIND(s,v)                   module->Set(V8_s(s),FunctionTemplate::New(v)->GetFunction());
 
-#define  EXPECT_ARGS(predicate)    if ( args.Length() predicate ) {} else {}
+#define  ARG_COUNT(c)    if ( args.Length() != 0 ) {} 
 
 using namespace v8;
 
