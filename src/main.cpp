@@ -1,6 +1,7 @@
 #include <v8.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #define  V8_s(s)                        v8::String::New(s)
 #define  V8_undefined                   v8::Undefined()
@@ -8,8 +9,12 @@
 #define  V8_Fn(f)                       v8::FunctionTemplate::New(f)
 #define  ARG_int(c)                     (int)(args[c]->Int32Value())
 #define  ARG_str(v,i)                   v8::String::AsciiValue str(args[i])
-#define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) { 
+#define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) { v8::HandleScope handlescope;
 #define  END                            }
+#define  INIT                           v8::Handle<v8::Value> instantiate() {\
+    Handle<Object> module = Object::New();
+#define  DECLARE(s,v)                   module->Set(V8_s(s),FunctionTemplate::New(v)->GetFunction());
+
 #define  EXPECT_ARG_COUNT(predicate)    if ( args.Length() predicate ) {} else {}
 
 using namespace v8;
@@ -32,23 +37,10 @@ v8::Handle<v8::Object>  EnsureModule (v8::Handle<v8::Object> global, const char*
 	return global;
 }
 
+#include "posix.cpp"
+
 // MODULE("system.posix")
 
-
-FUNCTION(Posix_fopen)
-	v8::HandleScope handlescope;
-	//EXPECT_ARG_COUNT(==1)
-	//int fd = ARG_int(0);
-	return V8_undefined;
-END
-
-Handle<Value> Posix_instantiate() {
-    HandleScope scope;
-    Handle<Object> target = Object::New();
-    Handle<FunctionTemplate> ft = FunctionTemplate::New(Posix_fopen);
-    target->Set(String::New("fopen"),ft->GetFunction());
-    return target;
-}
 
 // The callback that is invoked by v8 whenever the JavaScript 'print'
 // function is called.  Prints its arguments on stdout separated by
@@ -69,7 +61,7 @@ END
 
 void SetupBuiltIns (Handle<Object> global) {
 	//Handle<Object> module = EnsureModule(global, "systemposix");
-	global->Set(V8_s("posix"), Posix_instantiate());
+	global->Set(V8_s("posix"), instantiate());
 	global->Set(V8_s("print"), FunctionTemplate::New(Print)->GetFunction());
 	//V8_Set(module, "print", V8_Fn(Print));
 }
