@@ -11,7 +11,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-MODULE(posix)
+// #define MODULE "system.posix"
+using namespace v8;
 
 OBJECT(posix_FILE,1,FILE* file)
 	INTERNAL(0,file)
@@ -47,7 +48,7 @@ FUNCTION(posix_fclose)
 	return JS_int(fclose(file));
 END
 
-INIT
+INIT(system_posix,"system.posix")
 	BIND("time",   posix_time);
 	BIND("fopen",  posix_fopen);
 	BIND("fwrite", posix_fwrite);

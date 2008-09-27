@@ -8,17 +8,20 @@
 // ----------------------------------------------------------------------------
 
 #include <v8.h>
+#include <k7.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "macros.h"
-#include "modules.h"
 
 using namespace v8;
+
+
+IMPORT(system_posix)
 
 bool ExecuteString(v8::Handle<v8::String> source,
                    v8::Handle<v8::Value> name,
                    bool print_result);
+
 // The callback that is invoked by v8 whenever the JavaScript 'print'
 // function is called.  Prints its arguments on stdout separated by
 // spaces and ending with a newline.
@@ -37,12 +40,15 @@ FUNCTION(Print)
 END
 
 void SetupBuiltIns (Handle<Object> global) {
-	Handle<Object> module = EnsureModule(global, "system.posix");
-	 module = EnsureModule(global, "system.core");
-	//global->Set(JS_str("posix"), instantiate());
 	global->Set(JS_str("print"), FunctionTemplate::New(Print)->GetFunction());
-	//V8_Set(module, "print", V8_FT(Print));
+	system_posix(global);
 }
+
+// ----------------------------------------------------------------------------
+//
+// BASIC SHELL FUNCTIONS
+//
+// ----------------------------------------------------------------------------
 
 v8::Handle<v8::String> ReadFile(const char* name) {
   FILE* file = fopen(name, "rb");
@@ -64,11 +70,9 @@ v8::Handle<v8::String> ReadFile(const char* name) {
   return result;
 }
 
-
-
 // The read-eval-execute loop of the shell.
 void RunShell(v8::Handle<v8::Context> context) {
-  printf("V8 version %s\n", v8::V8::GetVersion());
+  printf("K7/V8 version %s\n", v8::V8::GetVersion());
   static const int kBufferSize = 256;
   while (true) {
     char buffer[kBufferSize];
@@ -80,7 +84,6 @@ void RunShell(v8::Handle<v8::Context> context) {
   }
   printf("\n");
 }
-
 
 // Executes a string within the current v8 context.
 bool ExecuteString(v8::Handle<v8::String> source,
@@ -112,6 +115,12 @@ bool ExecuteString(v8::Handle<v8::String> source,
     }
   }
 }
+
+// ----------------------------------------------------------------------------
+//
+// MAIN SHELL FUNCTIONS
+//
+// ----------------------------------------------------------------------------
 
 int main(int argc, char ** argv) {
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);

@@ -11,6 +11,7 @@
 #define __K7_MACROS__
 
 #include <v8.h>
+#include <k7.h>
 
 /**
  * These macros are just shorthand to creat V8/JavaScript values that can be
@@ -22,8 +23,6 @@
 #define  JSOBJ_set(target,slot,value)   target->Set(JS_str(slot),value)  
 #define  V8_FT(f)                       v8::FunctionTemplate::New(f)
 
-#define  MODULE(n)                      using namespace v8;
-
 /**
  * This set of macro make it easy to declare a function that can be exported to
  * the JavaScript environment.
@@ -32,7 +31,7 @@
 #define  ARG_COUNT(c)                   if ( args.Length() != 0 ) {} 
 #define  ARG_int(n,c)                   int n=(int)(args[c]->Int32Value())
 #define  ARG_str(v,i)                   v8::String::AsciiValue v(args[i])
-#define  ARG_obj(v,i)                   Local<Object> v=args[i]->ToObject();
+#define  ARG_obj(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
 #define  END                            }
 
 /**
@@ -40,24 +39,26 @@
  * you want to set internal data in this object. 
  * See the 'posix.cpp' module for examples. */
 #define OBJECT(name,fields,...) \
-Handle<Object> name(__VA_ARGS__) { \
-	HandleScope handle_scope;\
-	Handle<FunctionTemplate>   fun_template = FunctionTemplate::New();\
-	Handle<ObjectTemplate>   obj_template = fun_template->InstanceTemplate();\
+v8::Handle<Object> name(__VA_ARGS__) { \
+	v8::HandleScope handle_scope;\
+	v8::Handle<FunctionTemplate>   fun_template = v8::FunctionTemplate::New();\
+	v8::Handle<ObjectTemplate>   obj_template = fun_template->InstanceTemplate();\
 	obj_template->SetInternalFieldCount(fields);\
-	Handle<Object> self = obj_template->NewInstance();
+	v8::Handle<v8::Object> self = obj_template->NewInstance();
 #define INTERNAL(i,value) \
-	self->SetInternalField(i, External::New((void*)value));
+	self->SetInternalField(i, v8::External::New((void*)value));
 #define EXTERNAL(type,name,object,indice) \
-	type name = (type) (Local<External>::Cast(object->GetInternalField(0))->Value());
+	type name = (type) (v8::Local<v8::External>::Cast(object->GetInternalField(0))->Value());
 
 /**
  * These macros allow to declare a module initialization function and register
  * FUNCTIONs in this module. */
-#define  INIT                           v8::Handle<v8::Value> instantiate() {\
+#define  INIT(name,moduleName)                           extern "C" v8::Handle<v8::Value> name(v8::Handle<Object> global) {\
     HandleScope handle_scope; \
-    Handle<Object> module = Object::New();
-#define  BIND(s,v)                      module->Set(JS_str(s),FunctionTemplate::New(v)->GetFunction());
+    Handle<Object> module = EnsureModule(global,moduleName);
+#define  BIND(s,v)                      module->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
+
+#define IMPORT(function) v8::Handle<v8::Value> function(v8::Handle<Object> global);
 
 #endif
 // EOF - vim: ts=4 sw=4 noet
