@@ -4,18 +4,21 @@
 #include <time.h>
 
 #define  V8_s(s)                        v8::String::New(s)
+#define  V8_int(s)                      v8::Integer::New(s)
 #define  V8_undefined                   v8::Undefined()
 #define  V8_Set(target,slot,value)      target->Set(V8_s(slot),value)  
 #define  V8_Fn(f)                       v8::FunctionTemplate::New(f)
 #define  ARG_int(c)                     (int)(args[c]->Int32Value())
-#define  ARG_str(v,i)                   v8::String::AsciiValue str(args[i])
+#define  ARG_str(v,i)                   v8::String::AsciiValue v(args[i])
 #define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) { v8::HandleScope handlescope;
 #define  END                            }
-#define  INIT                           v8::Handle<v8::Value> instantiate() {\
+#define  START_INIT                           v8::Handle<v8::Value> instantiate() {\
+    HandleScope handle_scope; \
     Handle<Object> module = Object::New();
-#define  DECLARE(s,v)                   module->Set(V8_s(s),FunctionTemplate::New(v)->GetFunction());
+#define  END_INIT                       return module; }
+#define  BIND(s,v)                   module->Set(V8_s(s),FunctionTemplate::New(v)->GetFunction());
 
-#define  EXPECT_ARG_COUNT(predicate)    if ( args.Length() predicate ) {} else {}
+#define  EXPECT_ARGS(predicate)    if ( args.Length() predicate ) {} else {}
 
 using namespace v8;
 
