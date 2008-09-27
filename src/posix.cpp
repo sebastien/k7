@@ -1,3 +1,12 @@
+// ----------------------------------------------------------------------------
+// Project           : K7 - Standard Library for V8
+// -----------------------------------------------------------------------------
+// Author            : Sebastien Pierre                   <sebastien@type-z.org>
+// ----------------------------------------------------------------------------
+// Creation date     : 27-Sep-2008
+// Last modification : 27-Sep-2008
+// ----------------------------------------------------------------------------
+
 #include "macros.h"
 #include <stdlib.h>
 #include <time.h>
@@ -45,3 +54,5 @@ INIT
 	BIND("fclose", posix_fclose);
 	return module;
 END
+
+// EOF - vim: ts=4 sw=4 noet

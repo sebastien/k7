@@ -1,3 +1,12 @@
+// ----------------------------------------------------------------------------
+// Project           : K7 - Standard Library for V8
+// -----------------------------------------------------------------------------
+// Author            : Sebastien Pierre                   <sebastien@type-z.org>
+// ----------------------------------------------------------------------------
+// Creation date     : 27-Sep-2008
+// Last modification : 27-Sep-2008
+// ----------------------------------------------------------------------------
+
 #ifndef __K7_MACROS__
 #define __K7_MACROS__
 
@@ -51,3 +60,4 @@ Handle<Object> name(__VA_ARGS__) { \
 #define  BIND(s,v)                      module->Set(JS_str(s),FunctionTemplate::New(v)->GetFunction());
 
 #endif
+// EOF - vim: ts=4 sw=4 noet

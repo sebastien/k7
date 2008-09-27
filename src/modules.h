@@ -1,3 +1,12 @@
+// ----------------------------------------------------------------------------
+// Project           : K7 - Standard Library for V8
+// -----------------------------------------------------------------------------
+// Author            : Sebastien Pierre                   <sebastien@type-z.org>
+// ----------------------------------------------------------------------------
+// Creation date     : 27-Sep-2008
+// Last modification : 27-Sep-2008
+// ----------------------------------------------------------------------------
+
 #ifndef __K7_MODULE__
 #define __K7_MODULE__
 /**
@@ -19,3 +28,4 @@ v8::Handle<v8::Object>     EnsureModule (
 	const char*              fullName=NULL
 );
 #endif
+// EOF - vim: ts=4 sw=4 noet

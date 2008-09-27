@@ -1,3 +1,12 @@
+// ----------------------------------------------------------------------------
+// Project           : K7 - Standard Library for V8
+// -----------------------------------------------------------------------------
+// Author            : Sebastien Pierre                   <sebastien@type-z.org>
+// ----------------------------------------------------------------------------
+// Creation date     : 27-Sep-2008
+// Last modification : 27-Sep-2008
+// ----------------------------------------------------------------------------
+
 #include <v8.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -67,4 +76,4 @@ v8::Handle<v8::Object>     EnsureModule (
 		return EnsureModule(module, rest, fullName);
 	}
 }
-// EOF
+// EOF - vim: ts=4 sw=4 noet
