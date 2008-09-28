@@ -3,7 +3,7 @@ BUILD_DIR             =build
 CPP                   =g++
 INCLUDE_V8            =archives/v8-read-only/include
 BINLIB_V8             =archives/v8-read-only/libv8.a
-LIBS                  =-lpthread
+LIBS                  =-lpthread -ldl
 INCLUDES              =-I$(INCLUDE_V8) -Isrc
 PRODUCT               =k7
 

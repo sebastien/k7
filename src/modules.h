@@ -9,6 +9,11 @@
 
 #ifndef __K7_MODULE__
 #define __K7_MODULE__
+
+#include <v8.h>
+
+typedef v8::Handle<v8::Value> (*module_init_t)(v8::Handle<v8::Object> global);
+
 /**
  * Ensures that the module with the given 'moduleName' exists (which can be
  * dot-separated like 'system.posix' if it is a submodule). The parent modules

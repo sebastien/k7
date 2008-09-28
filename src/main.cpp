@@ -41,7 +41,8 @@ END
 
 void SetupBuiltIns (Handle<Object> global) {
 	global->Set(JS_str("print"), FunctionTemplate::New(Print)->GetFunction());
-	system_posix(global);
+	EnsureModule(global,"system.posix");
+	//system_posix(global);
 }
 
 // ----------------------------------------------------------------------------
