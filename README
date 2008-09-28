@@ -1,5 +1,8 @@
 == K7
 == A standard library for V8
+-- Author: Sebastien Pierre <sebastien@type-z.org>
+-- Date:   28-Sep-2008
+
 
 [V8] is a fast JavaScript interpreter that can be easily embedded in C and C++
 applications. The K7 projects aims at creating a high-quality standard library
@@ -19,7 +22,8 @@ guided in the process. As a result, K7 is designed on the following principles:
     macros that are rather straightforward to learn.
 
   - Module system: extensions are shipped as modules (or submodules) that fit
-    into a predefined module tree, and can be loaded on demand.
+    into a predefined module tree, and can be loaded on demand (look at
+    API.yaml) for more information.
 
   - Convention-based: to ensure that all the extensions fit nicely together, we
     provide a set of conventions based on the existing JavaScript library.
@@ -40,6 +44,16 @@ extensions:
   - Limit dependencies: when you want to start writing an extension, pick a
     library that is designed in the UNIX philosophy, that does not have too many
     dependencies and do on thing well (like 'libcurl', for instance).
+
+The k7 source code is separated in two main folders:
+
+  - 'src' which contains the k7 main source code, which is basically the
+    interpeter, the module system and the macros.
+
+  - 'lib' which contains the JavaScript and extension modules source code, and
+    which is laid out according to the modules hierarchy. For instance, the
+    'system.posix' extension module will be located as
+    'lib/system/posix/posix.cpp' file.
 
 To get started, you'll need a POSIX environment with a compiler, and
 'subversion' and 'scons' installed. Typing
