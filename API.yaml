@@ -4,14 +4,26 @@
 #
 # Here is how K7 elements should be named:
 #
-# - modules:   lowercase, dot-separated ("system","system.posix")
-# - constants: UPPERCASE ("VERSION")
-# - globals:   CamelCase ("SystemPath","LoadedModules")
-# - functions: camelCase ("print", "loadModule")
-# - classes:   CamelCase ("Array","SortedArray")
-# - methods:   camelCase ("Array.length", "SortedArray.sortBy")
+# - modules:    lowercase, dot-separated ("system","system.posix")
+# - constants:  UPPERCASE ("VERSION")
+# - globals:    CamelCase ("SystemPath","LoadedModules")
+# - functions:  camelCase ("print", "loadModule")
+# - arguments:  camelCase ("parameter", "anotherParameter")
+# - properties: camelCase ("length","sortedElements")
+# - classes:    CamelCase ("Array","SortedArray")
+# - methods:    camelCase ("Array.length", "SortedArray.sortBy")
 #
 # When writing new modules, they should fit in the following tree of modules.
+core:
+    modules:
+        load:
+        get:
+        has:
+            is:  function
+            args: [moduleName]
+        Path:
+            is:   global
+            doc:  A global array containing the modules search path
 system:
     posix:
         fopen:
