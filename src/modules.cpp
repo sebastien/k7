@@ -61,7 +61,7 @@ char* FindModule (
 void LoadModule(
 	v8::Handle<v8::Object>  global,
 	const char*             moduleName,
-	const char*             modulePath=(const char*)NULL
+	const char*             modulePath
 ) {
 	char* module_path;
 	if (modulePath==NULL) {
@@ -132,12 +132,15 @@ v8::Handle<v8::Object>     EnsureModule (
 			}
 		}
 	} else {
-		Local<ObjectTemplate> obj_template = FunctionTemplate::New()->InstanceTemplate();
+		//Local<ObjectTemplate> obj_template = FunctionTemplate::New()->InstanceTemplate();
 		// We only set the __module__ slot for the module we are loading.
+		module = Object::New();
 		if (rest == NULL) {
-			obj_template->Set(v8::String::New("__module__"), v8::String::New(fullName));
+			//obj_template->Set(v8::String::New("__module__"), v8::String::New(fullName));
+			module->Set(v8::String::New("__module__"), v8::String::New(fullName));
 		}
-		module = obj_template->NewInstance();
+		//module = obj_template->NewInstance();
+		//module->Set(v8::String::New("time"), v8::String::New("timeFUnction"));
 		parent->Set(name,module);
 	}
 	free(module_name);

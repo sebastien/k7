@@ -49,10 +49,17 @@ FUNCTION(posix_fclose)
 END
 
 INIT(system_posix,"system.posix")
+	printf("Initiliazing systme.posix\n");
+
+	Handle<FunctionTemplate> ft = v8::FunctionTemplate::New(posix_time);
+	module->Set(v8::String::New("time"), ft->GetFunction());
+	module->Set(v8::String::New("time"), JS_str("time::pouet"));
+	/*
 	BIND("time",   posix_time);
 	BIND("fopen",  posix_fopen);
 	BIND("fwrite", posix_fwrite);
 	BIND("fclose", posix_fclose);
+	*/
 	return module;
 END
 
