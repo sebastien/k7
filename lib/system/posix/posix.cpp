@@ -1,17 +1,59 @@
-#define MODULE   "system.posix"
-#define REVISION "1.0"
+// ----------------------------------------------------------------------------
+// Project           : K7 - Standard Library for V8
+// -----------------------------------------------------------------------------
+// Author            : Sebastien Pierre                   <sebastien@type-z.org>
+// ----------------------------------------------------------------------------
+// Creation date     : 27-Sep-2008
+// Last modification : 27-Sep-2008
+// ----------------------------------------------------------------------------
 
-FUNCTION(Posix_fopen)
-	v8::Integer::Value fd(args[0]);
-	return js_undefined;
+#include "macros.h"
+#include <stdlib.h>
+#include <time.h>
+
+// #define MODULE "system.posix"
+using namespace v8;
+
+OBJECT(posix_FILE,1,FILE* file)
+	INTERNAL(0,file)
+	return self;
 END
 
-REGISTRY
-	DECLARE(fopen,  Posix_fopen)
-	DECLARE(fclose, Posix_fclose)
-	DECLARE(fread,  Posix_fread)
-	DECLARE(fwrite, Posix_fwrite)
-	DECLARE(fwseek, Posix_fwrite)
+FUNCTION(posix_time)
+	ARG_COUNT(0)
+	return JS_int(time(NULL));
 END
 
-// EOF
+FUNCTION(posix_fwrite)
+	ARG_str(data,0);
+	ARG_int(size,1);
+	ARG_int(nmemb,2);
+	ARG_obj(fileObj,3);
+	EXTERNAL(FILE*,file,fileObj,0);
+	return JS_int(fwrite(*data,size,nmemb,file));
+END
+
+FUNCTION(posix_fopen)
+	ARG_COUNT(2)
+	ARG_str(path,0);
+	ARG_str(mode,1);
+	FILE* fd = fopen(*path,*mode);
+	return posix_FILE(fd);
+END
+
+FUNCTION(posix_fclose)
+	ARG_COUNT(1);
+	ARG_obj(fileObj,0);
+	EXTERNAL(FILE*,file,fileObj,0);
+	return JS_int(fclose(file));
+END
+
+INIT(system_posix,"system.posix")
+	BIND("time",   posix_time);
+	BIND("fopen",  posix_fopen);
+	BIND("fwrite", posix_fwrite);
+	BIND("fclose", posix_fclose);
+	return module;
+END
+
+// EOF - vim: ts=4 sw=4 noet

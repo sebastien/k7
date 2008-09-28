@@ -15,6 +15,26 @@
 typedef v8::Handle<v8::Value> (*module_init_t)(v8::Handle<v8::Object> global);
 
 /**
+ * Loads a module into the global environment, if the module is already loaded,
+ * it will be returned, otherwise it will be loaded and initialized.
+*/
+void LoadModule(
+	v8::Handle<v8::Object>  global,
+	const char*             moduleName,
+	const char*             modulePath=(const char*)NULL
+);
+
+/**
+ * Finds a path that corresponds to the given module name.
+ * This functions returns NULL when no module was found, or returns a new string
+ * containing the path to the module. Don't forget to 'free' the string
+ * afterwards.
+*/
+char* FindModule (
+	const char* moduleName
+);
+
+/**
  * Ensures that the module with the given 'moduleName' exists (which can be
  * dot-separated like 'system.posix' if it is a submodule). The parent modules
  * will be created on the fly if they exist.

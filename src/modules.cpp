@@ -13,7 +13,6 @@
 #include <string.h>
 #include <dlfcn.h>
 
-
 #define SHARED_OJECT_SUFFIX         ".so"
 #define JS_SUFFIX                   ".js"
 #define MODULE_SUFFIX_MAXLEN        4
@@ -71,7 +70,7 @@ void LoadModule(
 		module_path = (char*)malloc((strlen(modulePath)+1)*sizeof(char));
 		strcpy(module_path,modulePath);
 	}
-	printf("LOADING MODULE:%s\n", modulePath);
+	//printf("LOADING MODULE:%s\n", modulePath);
 	// TODO: Do the distinction between a .js and a .so file
 	void* handle = dlopen(module_path, RTLD_LAZY);
 	const char *dlsym_error;
@@ -79,10 +78,10 @@ void LoadModule(
 		module_init_t init = (module_init_t) dlsym(handle,"initialize");
 		dlsym_error = dlerror();
 		if (dlsym_error) {
-			printf("ERROR: %s\n", dlsym_error);
+			//printf("ERROR: %s\n", dlsym_error);
 			dlclose(handle);
 		} else {
-			printf("Loading module init\n", dlsym_error);
+			//printf("Loading module init\n", dlsym_error);
 			init(global);
 		}
 	}
