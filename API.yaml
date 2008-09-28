@@ -1,17 +1,29 @@
-This document contians the API specification for the K7 JavaScript environment.
-The specification is a set of modules containing function descriptions
----
+# This document contains the API specification for the K7 JavaScript environment.
+# The environments conforms to a naming convention based on the existing
+# conventions used in ECMAScript, which are based on the Java naming conventions.
+#
+# Here is how K7 elements should be named:
+#
+# - modules:   lowercase, dot-separated ("system","system.posix")
+# - constants: UPPERCASE ("VERSION")
+# - globals:   CamelCase ("SystemPath","LoadedModules")
+# - functions: camelCase ("print", "loadModule")
+# - classes:   CamelCase ("Array","SortedArray")
+# - methods:   camelCase ("Array.length", "SortedArray.sortBy")
+#
+# When writing new modules, they should fit in the following tree of modules.
 system:
     posix:
+        fopen:
+            is:    function
+            args:   [path,mode]
         fread:
-            type:    function
+            is:    function
             returns: integer
-            status:  implemented
         fwrite:
-            type:    function
+            is:    function
             returns: integer
-            status:  not implemented
-        fseek
+        fseek:
 
         fclose
     io:
@@ -28,18 +40,30 @@ net:
 data:
     formats:
         xml:
-            - fromString
-            - fromFile
-            - toString
-            - toFile
+            fromString:
+                is:function
+            fromFile:
+                is:function
+            toString:
+                is:function
+            toFile:
+                is:function
         yaml:
-            - fromString
-            - fromFile
-            - toString
-            - toFile
+            fromString:
+                is:function
+            fromFile:
+                is:function
+            toString:
+                is:function
+            toFile:
+                is:function
         json:
-            - fromString
-            - fromFile
-            - toString
-            - toFile
+            fromString:
+                is:function
+            fromFile:
+                is:function
+            toString:
+                is:function
+            toFile:
+                is:function
 # EOF
