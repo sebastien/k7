@@ -1,0 +1,54 @@
+== K7
+== A standard library for V8
+
+[V8] is a fast JavaScript interpreter that can be easily embedded in C and C++
+applications. The K7 projects aims at creating a high-quality standard library
+for V8 by taking advantage of its embedding facilities.
+
+The main goal of K7 is to offer an infrastructure that *makes it easy to write
+extensions* to the V8 interpreter. A couple of open-source projects started with
+the goal of creating a JavaScript server-side environment, but none of them is
+easy to use, provide good documentation and guidelines so that newbies could
+start writing extensions in minute.
+
+One of the main goal of K7 is to enable people to write a module for their
+preferred library without having to learn too much new information, and to be
+guided in the process. As a result, K7 is designed on the following principles:
+
+  - Macros to ease the pain: you can easily write extensions using a set of C
+    macros that are rather straightforward to learn.
+
+  - Module system: extensions are shipped as modules (or submodules) that fit
+    into a predefined module tree, and can be loaded on demand.
+
+  - Convention-based: to ensure that all the extensions fit nicely together, we
+    provide a set of conventions based on the existing JavaScript library.
+
+Additionally, there are a couple of principles that should be followed when writing
+extensions:
+
+  - Be simple: avoid writing complex extension modules with lots of functions
+    and classes.  Provide binding to standard, well-known API (like POSIX). This
+    allows to keep the extensions simple, make maintenance and usage easier.
+
+  - Use JavaScript for objects: prefer writing pure-JavaScript modules that take
+    advantage of extension modules rather than putting everything in the
+    extension. For example, a module providing a 'File' object should be written
+    in pure JavaScript, and take advantage of the 'posix' API for the actual
+    I/O.
+
+  - Limit dependencies: when you want to start writing an extension, pick a
+    library that is designed in the UNIX philosophy, that does not have too many
+    dependencies and do on thing well (like 'libcurl', for instance).
+
+To get started, you'll need a POSIX environment with a compiler, and
+'subversion' and 'scons' installed. Typing
+
+>   make
+
+Should be sufficient to create the 'k7' interpreter, compiled with extensions.
+
+--
+[V8]          V8 VM, <http://code.google.com/p/v8/> 
+
+# EOF - vim: ts=2 sw=2 syn=kiwi et
