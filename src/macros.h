@@ -56,7 +56,7 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 #define  INIT(name,moduleName) \
     extern "C" v8::Handle<v8::Value> name(v8::Handle<Object> global) {\
     HandleScope    handle_scope; \
-    Handle<Object> module = global; //EnsureModule(global,moduleName);
+    Handle<Object> module = EnsureModule(global,moduleName);
 
 #define  BIND(s,v)       module->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
 

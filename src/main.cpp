@@ -16,13 +16,23 @@
 
 using namespace v8;
 
+// ----------------------------------------------------------------------------
+//
+// K7 ENVIRONMENT
+//
+// ----------------------------------------------------------------------------
+
 IMPORT(system_posix)
 
-FUNCTION(pposix_time)
-	ARG_COUNT(0)
-	return JS_int(time(NULL));
+ENVIRONMENT
+	 LOAD(system_posix)
 END
 
+// ----------------------------------------------------------------------------
+//
+// BASIC SHELL FUNCTIONS
+//
+// ----------------------------------------------------------------------------
 
 bool ExecuteString(v8::Handle<v8::String> source,
                    v8::Handle<v8::Value> name,
@@ -44,27 +54,6 @@ FUNCTION(Print)
 	printf("\n");
 	return JS_undefined;
 END
-
-ENVIRONMENT
-	Handle<Object> module = EnsureModule(global, "system.posix");
-	Persistent<Function> f = Persistent<Function>::New(v8::FunctionTemplate::New(pposix_time)->GetFunction());
-	module->Set(JS_str("time"),  f);
-	module->Set(JS_str("print"), v8::FunctionTemplate::New(Print)->GetFunction());
-	//system_posix(module);
-	/*
-	Handle<FunctionTemplate> ft = v8::FunctionTemplate::New(pposix_time);
-	module->Set(JS_str("time"), ft->GetFunction());
-	global->Set(JS_str("time"), ft->GetFunction());
-	*/
-	//module->Set(v8::String::New("time"), JS_str("time::pouet"));
-	//LOAD(system_posix)
-END
-
-// ----------------------------------------------------------------------------
-//
-// BASIC SHELL FUNCTIONS
-//
-// ----------------------------------------------------------------------------
 
 v8::Handle<v8::String> ReadFile(const char* name) {
   FILE* file = fopen(name, "rb");

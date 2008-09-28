@@ -7,6 +7,7 @@ V8_INCLUDE            =deps/v8/include
 V8_BINARY             =deps/v8/libv8.a
 
 SOURCES               =$(wildcard src/*.cpp)
+HEADERS               =$(wildcard src/*.h)
 MODULES               =$(wildcard lib/*.cpp lib/*/*.cpp lib/*/*/*.cpp)
 OBJECTS               =$(SOURCES:src/%.cpp=build/%.o)
 SOBJECTS              =$(MODULES:lib/%.cpp=build/%.o)
@@ -31,11 +32,11 @@ deps/v8: deps
 deps/v8/libv8.a: deps/v8
 	cd deps/v8 && scons
 
-build/%.o: src/%.cpp build deps/v8
+build/%.o: src/%.cpp $(HEADERS) build deps/v8
 	g++ $(INCLUDES) -c $< -o $@
 
 #g++ $(INCLUDES) -fPIC $< -o $@ $(V8_BINARY) $(BUILD_LIBS)
-build/%.o: lib/%.cpp build
+build/%.o: lib/%.cpp $(HEADERS) build
 	@mkdir -p `dirname $@` || true
 	g++ $(INCLUDES) -c $< -o $@
 
