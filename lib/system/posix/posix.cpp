@@ -52,7 +52,7 @@ INIT(system_posix,"system.posix")
 	// FIXME: When I set the module 'time' slot to a string, accessing the slot
 	// from JavaScript works, but when I BIND it to the posix_time function, the
 	// JavaScript returns undefined. Even worse, the next BIND has no effect.
-	module->Set(v8::String::New("time"), JS_str("system.posix.time is a string"));
+	//module->Set(v8::String::New("time"), JS_str("system.posix.time is a string"));
 	BIND("time",   posix_time);
 	BIND("fopen",  posix_fopen);
 	BIND("fwrite", posix_fwrite);
