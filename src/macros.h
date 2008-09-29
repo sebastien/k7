@@ -54,16 +54,14 @@ v8::Handle<Object> name(__VA_ARGS__) { \
  * These macros allow to declare a module initialization function and register
  * FUNCTIONs in this module. */
 #define  INIT(name,moduleName) \
-    extern "C" v8::Handle<v8::Object> name() {\
-    HandleScope    handle_scope; \
-    Handle<Object> module = v8::Object::New();
+    extern "C" v8::Handle<v8::Object> name (v8::Handle<v8::Object> module) {
 
 #define  BIND(s,v)       module->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
 
 #define ENVIRONMENT      void SetupEnvironment (v8::Handle<v8::Object> global) { \
 
-#define IMPORT(function) extern "C" v8::Handle<v8::Object> function();
-#define LOAD(function)   function(global);
+#define IMPORT(function) extern "C" v8::Handle<v8::Object> function(v8::Handle<v8::Object> module);
+#define LOAD(moduleName,function)   function(EnsureModule(global,moduleName));
 
 #endif
 // EOF - vim: ts=4 sw=4 noet

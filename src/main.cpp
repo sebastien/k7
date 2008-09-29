@@ -25,7 +25,7 @@ using namespace v8;
 IMPORT(system_posix)
 
 ENVIRONMENT
-	 global->Set(JS_str("systemposix"),system_posix());
+	LOAD("system.posix",system_posix);
 END
 
 // ----------------------------------------------------------------------------

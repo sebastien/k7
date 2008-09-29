@@ -94,7 +94,9 @@ v8::Handle<v8::Object>     EnsureModule (
 	const char*              fullName
 ) {
 
-	HandleScope       handle_scope;
+	// FIXME: I had to disable the HandleScope, as it seems like the created
+	// modules are garbage collected, and this causes problems.
+	// HandleScope       handle_scope;
 	Handle<Object>    module;
 
 	// TODO: Rewrite this in proper C++ style
