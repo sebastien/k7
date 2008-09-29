@@ -29,9 +29,12 @@
  * See the 'posix.cpp' module for examples. */
 #define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) { v8::HandleScope handlescope;
 #define  ARG_COUNT(c)                   if ( args.Length() != 0 ) {} 
+#define  ARG_BETWEEN(a,b)               if ( a <= args.Length() <= b ) {} 
 #define  ARG_int(n,c)                   int n=(int)(args[c]->Int32Value())
 #define  ARG_str(v,i)                   v8::String::AsciiValue v(args[i])
+#define  ARG_utf8(v,i)                  v8::String::Utf8Value  v(args[i])
 #define  ARG_obj(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
+#define  THIS                           args->This()
 #define  END                            }
 
 /**
