@@ -1,0 +1,28 @@
+== K7 - A standard library for V8
+== Design and architecture
+-- Author: Sebastien Pierre <sebastien@type-z.org>
+-- Date:   29-Sep-2008
+
+The K7 project is architectured into three main components:
+
+  - The module loading system: it provides functions to locate, load and unload
+    both extension modules (C/C++ based extensions) and pure JavaScript modules.
+    The module loading system has JavaScript bindings.
+
+  - The interpreter: it is a simple user-friendly shell that makes it easy to
+    run scripts and to have interactive editing.
+
+  - The library: it is a collection of standalone modules (wether extension
+    modules or pure JavaScript modules) that follow the conventions.
+
+Module loading system
+=====================
+
+  The module loading system provides the following functions:
+
+  - 'k7::LoadModule'    or 'core.lib.load'
+  - 'k7::HasModule'     or 'core.lib.has'
+  - 'k7::ModuleLoaded'  or 'core.lib.isLoaded'
+  - 'k7::AddPath'       or 'core.lib.Path'
+
+# EOF - vim: ts=2 sw=2 syn=kiwi et
