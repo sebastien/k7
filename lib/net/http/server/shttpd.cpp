@@ -96,7 +96,7 @@ END
 /////////////////////////////////////////////////////////////
 // instance methods
 
-FUNCTION(Server_init)
+FUNCTION(Server_constructor)
 	ARG_COUNT(1);
 	ARG_utf8(port,0);
 		char * argv[6];
@@ -220,7 +220,7 @@ INIT(net_http_server_shttpd,"net.http.server.shttpd")
 	*/
 	
 	{
-		v8::Handle<v8::FunctionTemplate> ft = v8::FunctionTemplate::New();
+		v8::Handle<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(Server_constructor);
 		v8::Handle<v8::ObjectTemplate>   ot = ft->InstanceTemplate();
 		ot->Set("setOption",   v8::FunctionTemplate::New(Server_setOption));
 		ot->Set("close",       v8::FunctionTemplate::New(Server_close));
