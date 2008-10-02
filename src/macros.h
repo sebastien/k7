@@ -34,7 +34,7 @@
 #define  ARG_str(v,i)                   v8::String::AsciiValue v(args[i])
 #define  ARG_utf8(v,i)                  v8::String::Utf8Value  v(args[i])
 #define  ARG_obj(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
-#define  THIS                           args->This()
+#define  THIS                           args.This()
 #define  END                            }
 
 /**
@@ -56,10 +56,12 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 /**
  * These macros allow to declare a module initialization function and register
  * FUNCTIONs in this module. */
+#define  LINK_TO(lib)
 #define  INIT(name,moduleName) \
     extern "C" v8::Handle<v8::Object> name (v8::Handle<v8::Object> module) {
 
 #define  BIND(s,v)       module->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
+#define  SET(s,v)        module->Set(JS_str(s),v);
 
 #define ENVIRONMENT      void SetupEnvironment (v8::Handle<v8::Object> global) { \
 

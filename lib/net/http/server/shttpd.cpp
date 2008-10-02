@@ -2,88 +2,96 @@
 // Project           : K7 - Standard Library for V8
 // -----------------------------------------------------------------------------
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
-// ----------------------------------------------------------------------------
+//                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
+// -----------------------------------------------------------------------------
 // Creation date     : 29-Sep-2008
 // Last modification : 29-Sep-2008
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
-template <class T>
-inline T * handle(const v8::Arguments & args, int index) {
-    v8::Local<v8::Value> field = args.This()->GetInternalField(index);
-    assert(field->IsExternal());
-    T* ret = reinterpret_cast<T *>(v8::Handle<v8::External>::Cast(field)->Value());
-    assert(ret);
-    return ret;
+#include <k7.h>
+#include <cassert>
+#include <cstring>
+#include <string>
+#include <sstream>
+#ifdef _WIN32
+#  include <winsock.h>
+#else
+#  include <sys/types.h>
+#  include <sys/select.h>
+#  include <sys/wait.h>
+#endif
+
+#include "shttpd/src/shttpd.h"
+
+LINK_TO(libshttpd.a)
+
+template <class T> static inline T * handle(const v8::Arguments & args, int index) {
+	v8::Local<v8::Value> field = args.This()->GetInternalField(index);
+	assert(field->IsExternal());
+	T* ret = reinterpret_cast<T *>(v8::Handle<v8::External>::Cast(field)->Value());
+	assert(ret);
+	return ret;
 }
 
 static inline v8::Handle<v8::Object> shttpd_namespace() {
-        return v8::Context::GetCurrent()->Global()
-                      ->Get(v8::String::New("org"))->ToObject()
-                      ->Get(v8::String::New("coderepos"))->ToObject()
-                      ->Get(v8::String::New("shttpd"))->ToObject();
+		return v8::Context::GetCurrent()->Global()
+					  ->Get(v8::String::New("net"))->ToObject()
+					  ->Get(v8::String::New("http"))->ToObject()
+					  ->Get(v8::String::New("server"))->ToObject()
+					  ->Get(v8::String::New("shttpd"))->ToObject();
 }
 
-#define ARG_shttpd_arg(arg) EXTERNAL(shttpd_arg*,arg,THIS,0);
-#define ARG_shttpd_ctx(arg) EXTERNAL(shttpd_ctx*,arg,THIS,0);
+#define ARG_shttpd_arg(arg) shttpd_arg* arg = handle<shttpd_arg>( args, 0 );
+#define ARG_shttpd_ctx(arg) shttpd_ctx* arg = handle<shttpd_ctx>(args, 0);
+#define HANDLERS_GLOBAL "_Handlers"
+
 
 /////////////////////////////////////////////////////////////
 // handler
 
-FUNCTION(print)
+FUNCTION(Argument_print)
 	ARG_COUNT(1);
 	ARG_utf8(str,0);
-	EXTERNAL(shttpd_arg*,arg,THIS,0);
+	ARG_shttpd_arg(arg);
 	shttpd_printf(arg, "%s", *str);
-	return THIS;
+	return args.This();
 END
 
-FUNCTION(setFlags)
-	ARG_COUNT(1)
-	ARG_int(flags,0)
-	EXTERNAL(shttpd_arg*,arg,THIS,0);
+FUNCTION(Argument_setFlags)
+	ARG_COUNT(1);
+	ARG_int(flags,0);
+	ARG_shttpd_arg(arg);
 	arg->flags = flags;
-	return THIS;
+	return args.This();
 END
 
-FUNCTION(getEnv)
+FUNCTION(Argument_getEnv)
 	ARG_COUNT(1);
-	ARG_utf8(str,0);
-	EXTERNAL(shttpd_arg*,arg,THIS,0);
-	shttpd_printf(arg, "%s", *str);
+	ARG_utf8(name,0);
+	ARG_shttpd_arg(arg);
 	return JS_str(shttpd_get_env(arg, *name));
 END
 
-FUNCTION(getVar)
+FUNCTION(Argument_getVar)
 	ARG_BETWEEN(1,2);
-	ARG_utf8(str,0);
-	EXTERNAL(shttpd_arg*,arg,THIS,0);
+	ARG_utf8(name,0);
+	ARG_shttpd_arg(arg);
 	uint32_t bufsize = args.Length() == 2 ? args[1]->Uint32Value() : 1024*1024;
 	char *buf = new char [bufsize];
 	shttpd_get_var(*name, arg->in.buf, arg->in.len, buf, bufsize);
-	Handle<String> ret = String::New(buf);
+	v8::Handle<v8::String> ret = v8::String::New(buf);
 	delete [] buf;
 	return ret;
 END
 
-FUNCTION(getHeader)
+FUNCTION(Argument_getHeader)
 	ARG_COUNT(1)
-	ARG_utf8(str,0);
-	ARG_shttpd(arg)
+	ARG_utf8(name,0);
+	ARG_shttpd_arg(arg);
 	return JS_str(shttpd_get_header(arg, *name));
 END
 
-void _callback(struct shttpd_arg *_arg) {
-	HandleScope hs;
 
-	Handle<Function> func = Handle<Function>::Cast( shttpd_namespace()->Get(String::New("__HandlerStorage"))->ToObject()->Get(String::New(static_cast<char*>(_arg->user_data))) );
-
-	Handle<Object> arg = Handle<Function>::Cast( shttpd_namespace()->Get(String::New("Arg")) )->NewInstance();
-	arg->SetInternalField(0, External::New(_arg));
-
-	Handle<Value> funcargs[1];
-	funcargs[0] = arg;
-	func->Call(Context::GetCurrent()->Global(), 1, funcargs);
-}
 
 /////////////////////////////////////////////////////////////
 // instance methods
@@ -91,35 +99,59 @@ void _callback(struct shttpd_arg *_arg) {
 FUNCTION(Server_init)
 	ARG_COUNT(1);
 	ARG_utf8(port,0);
-		char * argv[6] = [
-			"k7",
-			"-dir_list",
-			"no",
-			"-ports",
-			*port,
-			NULL,
-		];
+		char * argv[6];
+		argv[0] = (char*)"k7";
+		argv[1] = (char*)"-dir_list";
+		argv[2] = (char*)"no";
+		argv[3] = (char*)"-ports";
+		argv[4] = *port;
+		argv[5] = NULL;
 		shttpd_ctx *ctx = shttpd_init(6, argv);
 		assert(ctx);
-		THIS->SetInternalField(0, External::New((void*)ctx));
-	return THIS
+		THIS->SetInternalField(0, v8::External::New((void*)ctx));
+	return THIS;
 END
 
 FUNCTION(Server_close)
 	ARG_COUNT(0)
-	ARG_shttpd_ctx(ctx,0)
+	ARG_shttpd_ctx(ctx)
 		shttpd_fini(ctx);
 	return THIS;
 END
 
 FUNCTION(Server_setOption)
 	ARG_COUNT(2)
-	ARG_shttpd_ctx(ctx,0)
-	ARG_ut8(key,0);
-	ARG_ut8(val,1);
+	ARG_shttpd_ctx(ctx)
+	ARG_utf8(key,0);
+	ARG_utf8(val,1);
 		shttpd_set_option(ctx, *key, *val);
 	return THIS;
 END
+
+void Server__onRequest(struct shttpd_arg *_arg) {
+	v8::HandleScope hs;
+
+	// We retrieve the handler function from the shared HANDLERS_GLOBAL variable
+	v8::Handle<v8::Function> handler = v8::Handle<v8::Function>::Cast(
+		shttpd_namespace()
+		->Get(JS_str(HANDLERS_GLOBAL))
+		->ToObject()
+		->Get(JS_str(static_cast<char*>(_arg->user_data)))
+	);
+
+	// We wrap the arguments into a new Argument object
+	// FIXME: Why a cast to a function .
+	v8::Handle<v8::Object> arg = v8::Handle<v8::Function>::Cast(
+		shttpd_namespace()->Get(JS_str("Argument"))
+	)->NewInstance();
+	arg->SetInternalField(0, v8::External::New(_arg));
+
+	v8::Handle<v8::Value> funcargs[1];
+	funcargs[0] = arg;
+
+	// We call the handler
+	handler->Call(v8::Context::GetCurrent()->Global(), 1, funcargs);
+}
 
 FUNCTION(Server_registerURI)
 	ARG_COUNT(2);
@@ -131,28 +163,34 @@ FUNCTION(Server_registerURI)
 		tmp << rand(); // make unique...
 		char * hashkey = new char [tmp.str().length() + 1];
 		strcpy(hashkey, tmp.str().c_str());
-		shttpd_namespace()->Get(String::New("__HandlerStorage"))->ToObject()->Set(String::New(hashkey), args[1]);
-		shttpd_register_uri(ctx, *uri, _callback, hashkey);
+		shttpd_namespace()->Get(
+			JS_str(HANDLERS_GLOBAL))
+			->ToObject()
+			->Set(JS_str(hashkey),
+			args[1]
+		);
+		shttpd_register_uri(ctx, *uri, Server__onRequest, hashkey);
 	return THIS;
 END
 
 FUNCTION(Server_handleError)
 	ARG_COUNT(2)
-	ARG_shttpd_ctx(ctx)
-	ARG_int(status,0)
+	ARG_shttpd_ctx(ctx);
+	ARG_int(status,0);
 		std::ostringstream tmp;
 		tmp << "HE";
 		tmp << status;
 		tmp << rand(); // make unique...
 		char * hashkey = new char [tmp.str().length() + 1];
 		strcpy(hashkey, tmp.str().c_str());
-		shttpd_namespace()->Get(String::New("__HandlerStorage"))->ToObject()->Set(String::New(hashkey), args[1]);
-		shttpd_handle_error(ctx, status, _callback, hashkey);
-	return THIS
+		shttpd_namespace()->Get(JS_str(HANDLERS_GLOBAL))
+			->ToObject()
+			->Set(JS_str(hashkey), args[1]);
+		shttpd_handle_error(ctx, status, Server__onRequest, hashkey);
+	return THIS;
 END
 
 FUNCTION(Server_startLoop)
-static v8::Handle<v8::Value> _start_loop(const v8::Arguments& args) {
 	ARG_COUNT(0);
 	ARG_shttpd_ctx(ctx);
 		for (;;) {
@@ -166,49 +204,56 @@ END
 
 INIT(net_http_server_shttpd,"net.http.server.shttpd")
 
-	Handle<FunctionTemplate> ft = FunctionTemplate::New(_init);
-	VALUE("VERSION",          JS_str(shttpd_version());
-	VALUE("END_OF_OUTPUT",    JS_int(SHTTPD_END_OF_OUTPUT)) 
-	VALUE("CONNECTION_ERROR", JS_int(SHTTPD_CONNECTION_ERROR)) 
-	VALUE("MORE_POST_DATA",   JS_int(SHTTPD_MORE_POST_DATA)) 
-	VALUE("POST_BUFFER_FULL", JS_int(SHTTPD_POST_BUFFER_FULL)) 
-	VALUE("SSI_EVAL_TRUE",    JS_int(SHTTPD_SSI_EVAL_TRUE)) 
-	VALUE("SUSPEND",          JS_int(SUSPEND)) 
+	SET("VERSION",          JS_str(shttpd_version()));
+	SET("END_OF_OUTPUT",    JS_int(SHTTPD_END_OF_OUTPUT)) 
+	SET("CONNECTION_ERROR", JS_int(SHTTPD_CONNECTION_ERROR)) 
+	SET("MORE_POST_DATA",   JS_int(SHTTPD_MORE_POST_DATA)) 
+	SET("POST_BUFFER_FULL", JS_int(SHTTPD_POST_BUFFER_FULL)) 
+	SET("SSI_EVAL_TRUE",    JS_int(SHTTPD_SSI_EVAL_TRUE)) 
+	SET("SUSPEND",          JS_int(SHTTPD_SUSPEND)) 
 
+	/*
 	PROTOTYPE("Server")
 		METHOD("setOption", Server_setOption)
 		METHOD("close",     Server_close)
-		
-	Handle<ObjectTemplate>   ot = ft->InstanceTemplate();
-		ot->Set("SetOption",   FunctionTemplate::New(_set_option));
-		ot->Set("Close",       FunctionTemplate::New(_close));
-		ot->Set("StartLoop",   FunctionTemplate::New(_start_loop));
-		ot->Set("RegisterURI", FunctionTemplate::New(_register_uri));
-		ot->Set("HandleError", FunctionTemplate::New(_handle_error));
+		METHOD("startLoop", Server_startLoop)
+	*/
+	
+	{
+		v8::Handle<v8::FunctionTemplate> ft = v8::FunctionTemplate::New();
+		v8::Handle<v8::ObjectTemplate>   ot = ft->InstanceTemplate();
+		ot->Set("setOption",   v8::FunctionTemplate::New(Server_setOption));
+		ot->Set("close",       v8::FunctionTemplate::New(Server_close));
+		ot->Set("startLoop",   v8::FunctionTemplate::New(Server_startLoop));
+		ot->Set("registerURI", v8::FunctionTemplate::New(Server_registerURI));
+		ot->Set("handleError", v8::FunctionTemplate::New(Server_handleError));
 		ot->SetInternalFieldCount(1);
-		target->Set(
-			String::New("SHTTPD"),
+		module->Set(
+			v8::String::New("Server"),
 			ft->GetFunction(),
-			PropertyAttribute(ReadOnly | DontDelete)
+			v8::PropertyAttribute(v8::ReadOnly | v8::DontDelete)
 		);
+	}
 
-	Handle<FunctionTemplate> ft = FunctionTemplate::New();
-	Handle<ObjectTemplate>   ot = ft->InstanceTemplate();
-	ot->Set(String::New("Print"),     FunctionTemplate::New(_arg_print)->GetFunction());
-	ot->Set(String::New("GetEnv"),    FunctionTemplate::New(_arg_get_env)->GetFunction());
-	ot->Set(String::New("GetVar"),    FunctionTemplate::New(_arg_get_var)->GetFunction());
-	ot->Set(String::New("GetHeader"), FunctionTemplate::New(_arg_get_header)->GetFunction());
-	ot->Set(String::New("SetFlags"),  FunctionTemplate::New(_arg_set_flags)->GetFunction());
-	ot->SetInternalFieldCount(1);
-	target->Set(
-		String::New("Arg"),
-		ft->GetFunction(),
-		PropertyAttribute(ReadOnly | DontDelete)
-	);
+	{
+		v8::Handle<v8::FunctionTemplate> ft = v8::FunctionTemplate::New();
+		v8::Handle<v8::ObjectTemplate>   ot = ft->InstanceTemplate();
+		ot->Set(JS_str("Print"),     v8::FunctionTemplate::New(Argument_print)->GetFunction());
+		ot->Set(JS_str("GetEnv"),    v8::FunctionTemplate::New(Argument_getEnv)->GetFunction());
+		ot->Set(JS_str("GetVar"),    v8::FunctionTemplate::New(Argument_getVar)->GetFunction());
+		ot->Set(JS_str("GetHeader"), v8::FunctionTemplate::New(Argument_getHeader)->GetFunction());
+		ot->Set(JS_str("SetFlags"),  v8::FunctionTemplate::New(Argument_setFlags)->GetFunction());
+		ot->SetInternalFieldCount(1);
+		module->Set(
+			JS_str("Argument"),
+			ft->GetFunction(),
+			v8::PropertyAttribute(v8::ReadOnly | v8::DontDelete)
+		);
+	}
 
-	target->Set(
-		String::New("__HandlerStorage"),
-		Object::New()
+	module->Set(
+		JS_str(HANDLERS_GLOBAL),
+		v8::Object::New()
 	);
 
     return module;

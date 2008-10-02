@@ -23,9 +23,11 @@ using namespace v8;
 // ----------------------------------------------------------------------------
 
 IMPORT(system_posix)
+IMPORT(net_http_server_shttpd)
 
 ENVIRONMENT
 	LOAD("system.posix",system_posix);
+	LOAD("net.http.server.shttpd",net_http_server_shttpd);
 END
 
 // ----------------------------------------------------------------------------
