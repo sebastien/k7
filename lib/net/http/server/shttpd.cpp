@@ -5,7 +5,7 @@
 //                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
 // -----------------------------------------------------------------------------
 // Creation date     : 29-Sep-2008
-// Last modification : 29-Sep-2008
+// Last modification : 02-Sep-2008
 // -----------------------------------------------------------------------------
 
 #include <k7.h>
@@ -13,6 +13,7 @@
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <time.h>
 #ifdef _WIN32
 #  include <winsock.h>
 #else
@@ -238,11 +239,11 @@ INIT(net_http_server_shttpd,"net.http.server.shttpd")
 	{
 		v8::Handle<v8::FunctionTemplate> ft = v8::FunctionTemplate::New();
 		v8::Handle<v8::ObjectTemplate>   ot = ft->InstanceTemplate();
-		ot->Set(JS_str("Print"),     v8::FunctionTemplate::New(Argument_print)->GetFunction());
-		ot->Set(JS_str("GetEnv"),    v8::FunctionTemplate::New(Argument_getEnv)->GetFunction());
-		ot->Set(JS_str("GetVar"),    v8::FunctionTemplate::New(Argument_getVar)->GetFunction());
-		ot->Set(JS_str("GetHeader"), v8::FunctionTemplate::New(Argument_getHeader)->GetFunction());
-		ot->Set(JS_str("SetFlags"),  v8::FunctionTemplate::New(Argument_setFlags)->GetFunction());
+		ot->Set(JS_str("print"),     v8::FunctionTemplate::New(Argument_print)->GetFunction());
+		ot->Set(JS_str("getEnv"),    v8::FunctionTemplate::New(Argument_getEnv)->GetFunction());
+		ot->Set(JS_str("getVar"),    v8::FunctionTemplate::New(Argument_getVar)->GetFunction());
+		ot->Set(JS_str("getHeader"), v8::FunctionTemplate::New(Argument_getHeader)->GetFunction());
+		ot->Set(JS_str("setFlags"),  v8::FunctionTemplate::New(Argument_setFlags)->GetFunction());
 		ot->SetInternalFieldCount(1);
 		module->Set(
 			JS_str("Argument"),
