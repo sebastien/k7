@@ -8,6 +8,7 @@ V8_BINARY             =deps/v8/libv8.a
 BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a
 
 SOURCES               =$(wildcard src/*.cpp)
+SOURCES_API           =$(shell find lib -name "*.api")
 HEADERS               =$(wildcard src/*.h)
 MODULES               =$(wildcard lib/*.cpp lib/*/*.cpp lib/*/*/*.cpp lib/*/*/*/*.cpp)
 OBJECTS               =$(SOURCES:src/%.cpp=build/%.o)
@@ -20,6 +21,10 @@ all: $(OBJECTS) $(SOBJECTS) $(V8_BINARY)
 info:
 	@echo Modules: $(MODULES)
 	@echo Sources: $(SOURCES)
+	@echo API:     $(SOURCES_API)
+
+api: k7-api.html
+	
 
 build:
 	mkdir build
@@ -43,5 +48,8 @@ build/%.o: src/%.cpp $(HEADERS) build deps/v8
 build/%.o: lib/%.cpp $(HEADERS) build
 	@mkdir -p `dirname $@` || true
 	g++ $(INCLUDES) -c $< -o $@
+
+k7-api.html: $(SOURCES_API)
+	sugar -a$@ -ljs $(SOURCES_API)
 
 # EOF

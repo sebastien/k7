@@ -1,0 +1,17 @@
+@module system.posix
+
+@function time
+| Returns the local UNIX time as an integer, in milliseconds
+@end
+
+@function fopen path, mode
+| Opens the file at the given 'path' using the given 'mode'. This
+| returns a file object, that you should not forget to close.
+|
+| >    var fd = fopen("/tmp/myfile.txt", "w")
+@end
+
+@function fclose file
+| Closes the given file object.
+@end
+
