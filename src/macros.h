@@ -17,6 +17,7 @@
  * These macros are just shorthand to creat V8/JavaScript values that can be
  * passed to the V8 API or returned to the JavaScript environment */
 #define  JS_str(s)                      v8::String::New(s)
+#define  JS_str2(s,c)                   v8::String::New(s,c)
 #define  JS_int(s)                      v8::Integer::New(s)
 #define  JS_undefined                   v8::Undefined()
 
@@ -32,7 +33,7 @@
 #define  ARG_COUNT(c)                   if ( args.Length() != 0 ) {} 
 #define  ARG_BETWEEN(a,b)               if ( a <= args.Length() <= b ) {} 
 #define  ARG_int(n,c)                   int n=(int)(args[c]->Int32Value())
-#define  ARG_str(v,i)                   v8::String::AsciiValue v(args[i])
+#define  ARG_str(v,i)                   v8::String::AsciiValue v(args[i]);
 #define  ARG_utf8(v,i)                  v8::String::Utf8Value  v(args[i])
 #define  ARG_obj(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
 #define  THIS                           args.This()

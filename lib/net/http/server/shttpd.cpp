@@ -5,7 +5,7 @@
 //                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
 // -----------------------------------------------------------------------------
 // Creation date     : 29-Sep-2008
-// Last modification : 02-Sep-2008
+// Last modification : 02-Oct-2008
 // -----------------------------------------------------------------------------
 
 #include <k7.h>

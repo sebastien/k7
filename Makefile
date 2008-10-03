@@ -35,6 +35,9 @@ deps:
 deps/v8:
 	cd deps && svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge/ v8
 
+clean:
+	find build -name '*' | xargs rm -rf
+
 deps/shttpd:
 	cd deps && wget 'http://voxel.dl.sourceforge.net/sourceforge/shttpd/shttpd-1.42.tar.gz' && tar fvxz shttpd-1.42.tar.gz && rm shttpd-1.42.tar.gz && mv shttpd-1.42 shttpd
 

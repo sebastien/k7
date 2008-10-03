@@ -11,7 +11,28 @@
 | >    var fd = fopen("/tmp/myfile.txt", "w")
 @end
 
+@function fread size, quantity, file
+| Reads 'quantity' elements of the given 'size' (in bytes) from the given 'file'
+| object, returning a string which may be emty if there is nothing to be read.
+@end
+
 @function fclose file
 | Closes the given file object.
+@end
+
+@function popen command, type
+| Opens a process with the given command and returns a file object to which
+| you can read or write, depending on the 'type' argument ('r' or 'w')
+|
+| >    var fd = popen("echo Hello !", "r")
+@end
+
+@function pclose file
+| Closes the file object that was previously created with the 'popen' function.
+@end
+
+@function system command
+| Executes the given system commands and returns an integer representing the
+| STATUS of the command.
 @end
 
