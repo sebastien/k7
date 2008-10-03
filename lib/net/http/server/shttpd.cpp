@@ -9,22 +9,24 @@
 // -----------------------------------------------------------------------------
 
 #include <k7.h>
+
 #include <cassert>
 #include <cstring>
 #include <string>
 #include <sstream>
 #include <time.h>
-#ifdef _WIN32
-#  include <winsock.h>
-#else
-#  include <sys/types.h>
-#  include <sys/select.h>
-#  include <sys/wait.h>
-#endif
-
+#include <sys/types.h>
+#include <sys/select.h>
+#include <sys/wait.h>
 #include "shttpd/src/shttpd.h"
 
 LINK_TO(libshttpd.a)
+
+// ----------------------------------------------------------------------------
+//
+// MACROS & UTILITIES
+//
+// ----------------------------------------------------------------------------
 
 template <class T> static inline T * handle(const v8::Arguments & args, int index) {
 	v8::Local<v8::Value> field = args.This()->GetInternalField(index);
@@ -46,11 +48,13 @@ static inline v8::Handle<v8::Object> shttpd_namespace() {
 #define ARG_shttpd_ctx(arg) shttpd_ctx* arg = handle<shttpd_ctx>(args, 0);
 #define HANDLERS_GLOBAL "_Handlers"
 
+// ----------------------------------------------------------------------------
+//
+// ARGUMENT PROTOTYPE
+//
+// ----------------------------------------------------------------------------
 
-/////////////////////////////////////////////////////////////
-// handler
-
-FUNCTION(Argument_print)
+FUNCTION(Request_print)
 	ARG_COUNT(1);
 	ARG_utf8(str,0);
 	ARG_shttpd_arg(arg);
@@ -58,7 +62,7 @@ FUNCTION(Argument_print)
 	return args.This();
 END
 
-FUNCTION(Argument_setFlags)
+FUNCTION(Request_setFlags)
 	ARG_COUNT(1);
 	ARG_int(flags,0);
 	ARG_shttpd_arg(arg);
@@ -66,14 +70,14 @@ FUNCTION(Argument_setFlags)
 	return args.This();
 END
 
-FUNCTION(Argument_getEnv)
+FUNCTION(Request_getEnv)
 	ARG_COUNT(1);
 	ARG_utf8(name,0);
 	ARG_shttpd_arg(arg);
 	return JS_str(shttpd_get_env(arg, *name));
 END
 
-FUNCTION(Argument_getVar)
+FUNCTION(Request_getVar)
 	ARG_BETWEEN(1,2);
 	ARG_utf8(name,0);
 	ARG_shttpd_arg(arg);
@@ -85,17 +89,18 @@ FUNCTION(Argument_getVar)
 	return ret;
 END
 
-FUNCTION(Argument_getHeader)
+FUNCTION(Request_getHeader)
 	ARG_COUNT(1)
 	ARG_utf8(name,0);
 	ARG_shttpd_arg(arg);
 	return JS_str(shttpd_get_header(arg, *name));
 END
 
-
-
-/////////////////////////////////////////////////////////////
-// instance methods
+// ----------------------------------------------------------------------------
+//
+// SERVER PROTOTYPE
+//
+// ----------------------------------------------------------------------------
 
 FUNCTION(Server_constructor)
 	ARG_COUNT(1);
@@ -143,7 +148,7 @@ void Server__onRequest(struct shttpd_arg *_arg) {
 	// We wrap the arguments into a new Argument object
 	// FIXME: Why a cast to a function .
 	v8::Handle<v8::Object> arg = v8::Handle<v8::Function>::Cast(
-		shttpd_namespace()->Get(JS_str("Argument"))
+		shttpd_namespace()->Get(JS_str("Request"))
 	)->NewInstance();
 	arg->SetInternalField(0, v8::External::New(_arg));
 
@@ -191,17 +196,20 @@ FUNCTION(Server_handleError)
 	return THIS;
 END
 
-FUNCTION(Server_startLoop)
-	ARG_COUNT(0);
+FUNCTION(Server_processRequests)
+	ARG_BETWEEN(0,1);
+	int delay;
+	if (ARGC==1) { ARG_int(d,0) ; delay = d; }
 	ARG_shttpd_ctx(ctx);
-		for (;;) {
-			shttpd_poll(ctx, 1000);
-		}
+	shttpd_poll(ctx, delay);
 	return THIS;
 END
 
-/////////////////////////////////////////////////////////////
-// initialize
+// ----------------------------------------------------------------------------
+//
+// MODULE DECLARATION
+//
+// ----------------------------------------------------------------------------
 
 INIT(net_http_server_shttpd,"net.http.server.shttpd")
 
@@ -223,11 +231,11 @@ INIT(net_http_server_shttpd,"net.http.server.shttpd")
 	{
 		v8::Handle<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(Server_constructor);
 		v8::Handle<v8::ObjectTemplate>   ot = ft->InstanceTemplate();
-		ot->Set("setOption",   v8::FunctionTemplate::New(Server_setOption));
-		ot->Set("close",       v8::FunctionTemplate::New(Server_close));
-		ot->Set("startLoop",   v8::FunctionTemplate::New(Server_startLoop));
-		ot->Set("registerURI", v8::FunctionTemplate::New(Server_registerURI));
-		ot->Set("handleError", v8::FunctionTemplate::New(Server_handleError));
+		ot->Set("setOption",      v8::FunctionTemplate::New(Server_setOption));
+		ot->Set("close",          v8::FunctionTemplate::New(Server_close));
+		ot->Set("processRequests",v8::FunctionTemplate::New(Server_processRequests));
+		ot->Set("registerURI",    v8::FunctionTemplate::New(Server_registerURI));
+		ot->Set("handleError",    v8::FunctionTemplate::New(Server_handleError));
 		ot->SetInternalFieldCount(1);
 		module->Set(
 			v8::String::New("Server"),
@@ -239,14 +247,14 @@ INIT(net_http_server_shttpd,"net.http.server.shttpd")
 	{
 		v8::Handle<v8::FunctionTemplate> ft = v8::FunctionTemplate::New();
 		v8::Handle<v8::ObjectTemplate>   ot = ft->InstanceTemplate();
-		ot->Set(JS_str("print"),     v8::FunctionTemplate::New(Argument_print)->GetFunction());
-		ot->Set(JS_str("getEnv"),    v8::FunctionTemplate::New(Argument_getEnv)->GetFunction());
-		ot->Set(JS_str("getVar"),    v8::FunctionTemplate::New(Argument_getVar)->GetFunction());
-		ot->Set(JS_str("getHeader"), v8::FunctionTemplate::New(Argument_getHeader)->GetFunction());
-		ot->Set(JS_str("setFlags"),  v8::FunctionTemplate::New(Argument_setFlags)->GetFunction());
+		ot->Set(JS_str("print"),     v8::FunctionTemplate::New(Request_print)->GetFunction());
+		ot->Set(JS_str("getEnv"),    v8::FunctionTemplate::New(Request_getEnv)->GetFunction());
+		ot->Set(JS_str("getVar"),    v8::FunctionTemplate::New(Request_getVar)->GetFunction());
+		ot->Set(JS_str("getHeader"), v8::FunctionTemplate::New(Request_getHeader)->GetFunction());
+		ot->Set(JS_str("setFlags"),  v8::FunctionTemplate::New(Request_setFlags)->GetFunction());
 		ot->SetInternalFieldCount(1);
 		module->Set(
-			JS_str("Argument"),
+			JS_str("Request"),
 			ft->GetFunction(),
 			v8::PropertyAttribute(v8::ReadOnly | v8::DontDelete)
 		);

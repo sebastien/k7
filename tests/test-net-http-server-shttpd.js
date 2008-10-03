@@ -9,4 +9,4 @@ httpd.registerURI(
 		request.setFlags(shttpd.END_OF_OUTPUT);
 	}
 )
-httpd.startLoop()
+while (1) { httpd.processRequests() }

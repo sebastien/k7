@@ -28,6 +28,7 @@
  * the JavaScript environment.
  * See the 'posix.cpp' module for examples. */
 #define  FUNCTION(f)                    v8::Handle<v8::Value> f(const v8::Arguments& args) { v8::HandleScope handlescope;
+#define  ARGC                           args.Length()
 #define  ARG_COUNT(c)                   if ( args.Length() != 0 ) {} 
 #define  ARG_BETWEEN(a,b)               if ( a <= args.Length() <= b ) {} 
 #define  ARG_int(n,c)                   int n=(int)(args[c]->Int32Value())
