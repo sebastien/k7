@@ -25,15 +25,6 @@ FUNCTION(posix_time)
 	return JS_int(time(NULL));
 END
 
-FUNCTION(posix_fwrite)
-	ARG_str(data,0);
-	ARG_int(size,1);
-	ARG_int(nmemb,2);
-	ARG_obj(fileObj,3);
-	EXTERNAL(FILE*,file,fileObj,0);
-	return JS_int(fwrite(*data,size,nmemb,file));
-END
-
 FUNCTION(posix_fopen)
 	ARG_COUNT(2)
 	ARG_str(path,0);
@@ -70,16 +61,25 @@ FUNCTION(posix_system)
 	return JS_int(system(*command));
 END
 
-FUNCTION(posix_fread)
-	ARG_COUNT(3);
-	ARG_obj(fileObj,0);
+FUNCTION(posix_fwrite)
+	ARG_str(data,0);
 	ARG_int(size,1);
 	ARG_int(nmemb,2);
+	ARG_obj(fileObj,3);
+	EXTERNAL(FILE*,file,fileObj,0);
+	return JS_int(fwrite(*data,size,nmemb,file));
+END
+
+FUNCTION(posix_fread)
+	ARG_COUNT(3);
+	ARG_int(size,0);
+	ARG_int(nmemb,1);
+	ARG_obj(fileObj,2);
 	EXTERNAL(FILE*,file,fileObj,0);
 	if (size < 0) {
 		return v8::ThrowException(JS_str("Exception: invalid bufsize"));
 	}
-	char *buf   = new char[size];
+	char *buf   = new char[size*nmemb + 1024];
 	size_t read = fread(buf, size, nmemb, file);
 	v8::Handle<v8::String> strbuf = JS_str2(buf, read);
 	delete [] buf;
@@ -91,7 +91,6 @@ INIT(system_posix,"system.posix")
 	// from JavaScript works, but when I BIND it to the posix_time function, the
 	// JavaScript returns undefined. Even worse, the next BIND has no effect.
 	//module->Set(v8::String::New("time"), JS_str("system.posix.time is a string"));
-	printf("Loading module\n");
 	BIND("time",   posix_time);
 	BIND("fopen",  posix_fopen);
 	BIND("fwrite", posix_fwrite);

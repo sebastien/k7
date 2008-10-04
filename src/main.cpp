@@ -156,6 +156,7 @@ int main(int argc, char ** argv) {
 			v8::HandleScope handle_scope;
 			v8::Handle<v8::String> file_name = v8::String::New(str);
 			v8::Handle<v8::String> source = ReadFile(str);
+			context->Global()->Set(JS_str("__file__"), file_name);
 			if (source.IsEmpty()) {
 				printf("Error reading '%s'\n", str);
 				return 1;

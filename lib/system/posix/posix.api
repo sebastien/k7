@@ -11,7 +11,7 @@
 | >    var fd = fopen("/tmp/myfile.txt", "w")
 @end
 
-@function fread size, quantity, file
+@function fread file, size, quantity
 | Reads 'quantity' elements of the given 'size' (in bytes) from the given 'file'
 | object, returning a string which may be emty if there is nothing to be read.
 @end
