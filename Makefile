@@ -2,11 +2,11 @@ PRODUCT               =k7
 
 CPP                   =g++
 BUILD_DIR             =build
-BUILD_LIBS            =-lpthread -ldl 
-V8_INCLUDE            =deps/v8/include
-V8_BINARY             =deps/v8/libv8.a
+BUILD_LIBS            =-lpthread -ldl -lfcgi
 BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a
 
+V8_INCLUDE            =deps/v8/include
+V8_BINARY             =deps/v8/libv8.a
 SOURCES               =$(wildcard src/*.cpp)
 SOURCES_API           =$(shell find lib -name "*.api")
 HEADERS               =$(wildcard src/*.h)
@@ -15,7 +15,7 @@ OBJECTS               =$(SOURCES:src/%.cpp=build/%.o)
 SOBJECTS              =$(MODULES:lib/%.cpp=build/%.o)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 
-all: $(OBJECTS) $(SOBJECTS) $(V8_BINARY)
+all: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(BUILD_LIBS) $(V8_BINARY)
 	g++ $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
 
 info:
@@ -34,6 +34,9 @@ deps:
 
 deps/v8:
 	cd deps && svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge/ v8
+
+deps/shttpd/src/libshttpd.a:
+	cd deps &&
 
 clean:
 	find build -name '*' | xargs rm -rf

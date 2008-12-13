@@ -5,7 +5,7 @@
 //                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
 // -----------------------------------------------------------------------------
 // Creation date     : 29-Sep-2008
-// Last modification : 02-Oct-2008
+// Last modification : 13-Dec-2008
 // -----------------------------------------------------------------------------
 
 #include <k7.h>
@@ -15,12 +15,52 @@
 #include <string>
 #include <sstream>
 #include <time.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/select.h>
 #include <sys/wait.h>
 #include "shttpd/src/shttpd.h"
 
 LINK_TO(libshttpd.a)
+
+// ----------------------------------------------------------------------------
+//
+// API
+//
+// ----------------------------------------------------------------------------
+
+/*
+START_API
+@module net.http.server.shttpd
+
+@shared VERSION
+@shared END_OF_OUTPUT
+@shared CONNECTION_ERROR
+@shared MORE_POST_DATA
+@shared POST_BUFFER_FULL 
+@shared SSI_EVAL_TRUE
+@shared SUSPENT
+
+@class Request
+	@abstract @method getEnv
+	@abstract @method getVar
+	@abstract @method getHeader
+	@abstract @method setFlags
+@end
+
+@class Server
+
+	@constructor port
+	@end
+
+	@abstract @method setOption
+	@abstract @method processRequests
+	@abstract @method registerURI
+	@abstract @method handleError
+
+@end
+END_API
+*/
 
 // ----------------------------------------------------------------------------
 //
@@ -38,10 +78,10 @@ template <class T> static inline T * handle(const v8::Arguments & args, int inde
 
 static inline v8::Handle<v8::Object> shttpd_namespace() {
 		return v8::Context::GetCurrent()->Global()
-					  ->Get(v8::String::New("net"))->ToObject()
-					  ->Get(v8::String::New("http"))->ToObject()
-					  ->Get(v8::String::New("server"))->ToObject()
-					  ->Get(v8::String::New("shttpd"))->ToObject();
+					->Get(v8::String::New("net"))->ToObject()
+					->Get(v8::String::New("http"))->ToObject()
+					->Get(v8::String::New("server"))->ToObject()
+					->Get(v8::String::New("shttpd"))->ToObject();
 }
 
 #define ARG_shttpd_arg(arg) shttpd_arg* arg = handle<shttpd_arg>( args, 0 );
@@ -211,7 +251,7 @@ END
 //
 // ----------------------------------------------------------------------------
 
-INIT(net_http_server_shttpd,"net.http.server.shttpd")
+MODULE(net_http_server_shttpd,"net.http.server.shttpd")
 
 	SET("VERSION",          JS_str(shttpd_version()));
 	SET("END_OF_OUTPUT",    JS_int(SHTTPD_END_OF_OUTPUT)) 
@@ -237,7 +277,7 @@ INIT(net_http_server_shttpd,"net.http.server.shttpd")
 		ot->Set("registerURI",    v8::FunctionTemplate::New(Server_registerURI));
 		ot->Set("handleError",    v8::FunctionTemplate::New(Server_handleError));
 		ot->SetInternalFieldCount(1);
-		module->Set(
+		__module__->Set(
 			v8::String::New("Server"),
 			ft->GetFunction(),
 			v8::PropertyAttribute(v8::ReadOnly | v8::DontDelete)
@@ -253,19 +293,18 @@ INIT(net_http_server_shttpd,"net.http.server.shttpd")
 		ot->Set(JS_str("getHeader"), v8::FunctionTemplate::New(Request_getHeader)->GetFunction());
 		ot->Set(JS_str("setFlags"),  v8::FunctionTemplate::New(Request_setFlags)->GetFunction());
 		ot->SetInternalFieldCount(1);
-		module->Set(
+		__module__->Set(
 			JS_str("Request"),
 			ft->GetFunction(),
 			v8::PropertyAttribute(v8::ReadOnly | v8::DontDelete)
 		);
 	}
 
-	module->Set(
+	__module__->Set(
 		JS_str(HANDLERS_GLOBAL),
 		v8::Object::New()
 	);
 
-    return module;
-END
+END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet
