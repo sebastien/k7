@@ -103,8 +103,8 @@
 		v8::Handle<v8::ObjectTemplate>    __object__     = __class__->InstanceTemplate(); \
 		v8::Handle<v8::ObjectTemplate>    self           = __object__; \
 		__class__->SetClassName(v8::String::New(name)); 
-#define CONSTRUCTOR(c)       __class__->SetCallHandler(c)
-#define INTERNAL_FIELDS(i)   __object__->SetInternalFieldCount(i) 
+#define CONSTRUCTOR(c)       __class__->SetCallHandler(c);
+#define INTERNAL_FIELDS(i)   __object__->SetInternalFieldCount(i);
 #define END_CLASS            __module__->Set(__class_name__,__class__->GetFunction(),v8::PropertyAttribute(v8::ReadOnly|v8::DontDelete));}
 
 // ----------------------------------------------------------------------------
@@ -125,8 +125,8 @@
 // ----------------------------------------------------------------------------
 
 #define WITH_CLASS        { v8::Handle<v8::Object> self = __class__;
-#define WITH_MODULE       { v8::Handle<v8::Object> self = __module__
-#define WITH_OBJECT       { v8::Handle<v8::Object> self = __object__
+#define WITH_MODULE       { v8::Handle<v8::Object> self = __module__;
+#define WITH_OBJECT       { v8::Handle<v8::Object> self = __object__;
 
 #define SET(s,v)          self->Set(JS_str(s),v);
 #define SET_int(s,v)      self->Set(JS_str(s), JS_int(v));
