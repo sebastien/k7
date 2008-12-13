@@ -2,7 +2,7 @@ PRODUCT               =k7
 
 CPP                   =g++
 BUILD_DIR             =build
-BUILD_LIBS            =-lpthread -ldl -lfcgi
+BUILD_LIBS            =-lpthread -ldl -lfcgi -lcurl
 BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a
 
 V8_INCLUDE            =deps/v8/include

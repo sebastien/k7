@@ -129,7 +129,8 @@
 #define WITH_OBJECT       { v8::Handle<v8::Object> self = __object__
 
 #define SET(s,v)          self->Set(JS_str(s),v);
-#define SET_INT(s,v)      self->Set(JS_str(s), JS_int(v));
+#define SET_int(s,v)      self->Set(JS_str(s), JS_int(v));
+#define SET_str(s,v)      self->Set(JS_str(s), JS_str(v));
 
 #define BIND(s,v)         self->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
 #define METHOD(s,v)       __object__->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
