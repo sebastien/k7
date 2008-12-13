@@ -23,6 +23,8 @@
 
 LINK_TO(libshttpd.a)
 
+#define SHTTPD_POLL_DELAY 10
+
 // ----------------------------------------------------------------------------
 //
 // API
@@ -176,7 +178,6 @@ END
 
 void Server__onRequest(struct shttpd_arg *_arg) {
 	v8::HandleScope hs;
-
 	// We retrieve the handler function from the shared HANDLERS_GLOBAL variable
 	v8::Handle<v8::Function> handler = v8::Handle<v8::Function>::Cast(
 		shttpd_namespace()
@@ -238,7 +239,7 @@ END
 
 FUNCTION(Server_processRequests)
 	ARG_BETWEEN(0,1);
-	int delay;
+	int delay=SHTTPD_POLL_DELAY;
 	if (ARGC==1) { ARG_int(d,0) ; delay = d; }
 	ARG_shttpd_ctx(ctx);
 	shttpd_poll(ctx, delay);
