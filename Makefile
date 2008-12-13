@@ -35,8 +35,11 @@ deps:
 deps/v8:
 	cd deps && svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge/ v8
 
+deps/mongoose:
+	cd deps && svn checkout http://mongoose.googlecode.com/svn/trunk/ mongoose
+
 deps/shttpd/src/libshttpd.a:
-	cd deps &&
+	cd deps/shttpd/src && make unix LIBS="-ldl -lpthread"
 
 clean:
 	find build -name '*' | xargs rm -rf

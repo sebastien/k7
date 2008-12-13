@@ -24,10 +24,12 @@ using namespace v8;
 
 IMPORT(system_posix)
 IMPORT(net_http_server_shttpd)
+IMPORT(net_http_server_fcgi)
 
 ENVIRONMENT
-	LOAD("system.posix",system_posix);
+	LOAD("system.posix",          system_posix);
 	LOAD("net.http.server.shttpd",net_http_server_shttpd);
+	LOAD("net.http.server.fcgi",  net_http_server_fcgi);
 END
 
 // ----------------------------------------------------------------------------
