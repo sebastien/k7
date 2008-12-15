@@ -21,7 +21,7 @@ core:
         has:
             is:  function
             args: [moduleName]
-        Path:
+        PATH:
             is:   global
             doc:  A global array containing the modules search path
 system:
@@ -36,11 +36,17 @@ system:
             is:    function
             returns: integer
         fseek:
-
         fclose
     io:
         File:
             is:class
+            methods:
+                open
+                close
+                read
+                write
+                seek
+                stat
 ---
 net:
     http:
@@ -50,6 +56,10 @@ net:
             curl:
 ---
 data:
+    structure:
+        tree:
+            Node:
+                is:class
     formats:
         xml:
             fromString:
@@ -70,6 +80,15 @@ data:
             toFile:
                 is:function
         json:
+            fromString:
+                is:function
+            fromFile:
+                is:function
+            toString:
+                is:function
+            toFile:
+                is:function
+        csv:
             fromString:
                 is:function
             fromFile:
