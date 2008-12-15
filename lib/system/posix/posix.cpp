@@ -86,7 +86,7 @@ FUNCTION(posix_fread)
 	return strbuf;
 END
 
-INIT(system_posix,"system.posix")
+MODULE(system_posix,"system.posix")
 	// FIXME: When I set the module 'time' slot to a string, accessing the slot
 	// from JavaScript works, but when I BIND it to the posix_time function, the
 	// JavaScript returns undefined. Even worse, the next BIND has no effect.
@@ -99,7 +99,6 @@ INIT(system_posix,"system.posix")
 	BIND("popen",  posix_popen);
 	BIND("pclose", posix_pclose);
 	BIND("system", posix_system);
-	return module;
-END
+END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet
