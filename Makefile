@@ -2,7 +2,7 @@ PRODUCT               =k7
 
 CPP                   =g++
 BUILD_DIR             =build
-BUILD_LIBS            =-lpthread -ldl -lfcgi -lcurl
+BUILD_LIBS            =-lpthread -ldl -lfcgi -lcurl -liconv
 BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a
 
 V8_INCLUDE            =deps/v8/include
@@ -15,7 +15,7 @@ OBJECTS               =$(SOURCES:src/%.cpp=build/%.o)
 SOBJECTS              =$(MODULES:lib/%.cpp=build/%.o)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 
-all: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(BUILD_LIBS) $(V8_BINARY)
+all: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
 	g++ $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
 
 info:
@@ -33,7 +33,7 @@ deps:
 	mkdir deps
 
 deps/v8:
-	cd deps && svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge/ v8
+	cd deps && svn checkout http://v8.googlecode.com/svn/trunk/ v8
 
 deps/mongoose:
 	cd deps && svn checkout http://mongoose.googlecode.com/svn/trunk/ mongoose
