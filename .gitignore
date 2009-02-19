@@ -1,3 +1,4 @@
 deps/v8
+deps/shttpd/src/shttpd
 k7
 build
