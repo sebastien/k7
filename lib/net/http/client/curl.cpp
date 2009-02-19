@@ -109,13 +109,11 @@ static char* convert_string_alloc(const char* str, const char* from_codeset, con
 		goto out;
 
 again:
-// I'm really not sure what this ICONV_CAST stuff is about,
-// but the const_cast makes explodey in g++ 4.3.2  —isaacs
-// #ifdef ICONV_CONST
+#ifdef ICONV_CONST
 	err = iconv(cd, &str, &inbytes_remaining, &outp, &outbytes_remaining);
-// #else
-// 	err = iconv(cd, const_cast<char**>(&str), &inbytes_remaining, &outp, &outbytes_remaining);
-// #endif
+#else
+	err = iconv(cd, const_cast<char**>(&str), &inbytes_remaining, &outp, &outbytes_remaining);
+#endif
 	if (err == (size_t) - 1) {
 		switch (errno) {
 			case EINVAL:
