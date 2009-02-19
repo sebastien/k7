@@ -15,7 +15,7 @@ OBJECTS               =$(SOURCES:src/%.cpp=build/%.o)
 SOBJECTS              =$(MODULES:lib/%.cpp=build/%.o)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 
-all: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
+all: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(BUILD_LIBS) $(V8_BINARY)
 	g++ $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
 
 info:
@@ -29,11 +29,14 @@ api: k7-api.html
 build:
 	mkdir build
 
+clean:
+	rm -rf build
+
 deps:
 	mkdir deps
 
 deps/v8:
-	cd deps && svn checkout http://v8.googlecode.com/svn/trunk/ v8
+	cd deps && svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge/ v8
 
 deps/mongoose:
 	cd deps && svn checkout http://mongoose.googlecode.com/svn/trunk/ mongoose
@@ -41,8 +44,6 @@ deps/mongoose:
 deps/shttpd/src/libshttpd.a:
 	cd deps/shttpd/src && make unix LIBS="-ldl -lpthread"
 
-clean:
-	find build -name '*' | xargs rm -rf
 
 deps/shttpd:
 	cd deps && wget 'http://voxel.dl.sourceforge.net/sourceforge/shttpd/shttpd-1.42.tar.gz' && tar fvxz shttpd-1.42.tar.gz && rm shttpd-1.42.tar.gz && mv shttpd-1.42 shttpd

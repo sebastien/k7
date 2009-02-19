@@ -1,5 +1,3 @@
-deps
+deps/v8
 k7
 build
-*.o
-*.a
