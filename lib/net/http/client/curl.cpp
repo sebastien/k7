@@ -5,9 +5,10 @@
 //                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
 // -----------------------------------------------------------------------------
 // Creation date     : 13-Dec-2008
-// Last modification : 13-Dec-2008
+// Last modification : 24-Feb-2009
 // -----------------------------------------------------------------------------
 
+#ifdef WITH_CURL
 
 #include <k7.h>
 
@@ -259,5 +260,7 @@ MODULE(net_http_client_curl,"net.http.client.curl")
 	BIND("fetchURL",   fetchURL);
 	SET_str("VERSION", curl_version());
 END_MODULE
+
+#endif
 
 // EOF

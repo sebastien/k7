@@ -1,13 +1,14 @@
 // ----------------------------------------------------------------------------
-// Project		   : K7 - Standard Library for V8
+// Project           : K7 - Standard Library for V8
 // -----------------------------------------------------------------------------
-// Author			: Sebastien Pierre				   <sebastien@type-z.org>
-//				   : Tokuhiro Matsuno					<tokuhirom@gmail.com>
+// Author            : Sebastien Pierre                   <sebastien@type-z.org>
+//                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
 // -----------------------------------------------------------------------------
-// Creation date	 : 13-Dec-2008
-// Last modification : 13-Dec-2008
+// Creation date     : 13-Dec-2008
+// Last modification : 24-Feb-2009
 // -----------------------------------------------------------------------------
 
+#ifdef WITH_FCGI
 
 #include <k7.h>
 
@@ -101,4 +102,5 @@ MODULE(net_http_server_fcgi,"net.http.server.fcgi")
 	END_CLASS
 END_MODULE
 
+#endif
 // EOF

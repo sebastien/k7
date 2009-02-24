@@ -30,8 +30,12 @@ IMPORT(net_http_client_curl)
 ENVIRONMENT
 	LOAD("system.posix",          system_posix);
 	LOAD("net.http.server.shttpd",net_http_server_shttpd);
+#ifdef WITH_FCGI
 	LOAD("net.http.server.fcgi",  net_http_server_fcgi);
+#endif
+#ifdef WITH_CURL
 	LOAD("net.http.client.curl",  net_http_client_curl);
+#endif
 END
 
 // ----------------------------------------------------------------------------
