@@ -14,6 +14,7 @@ V8 C++ extension:
 Packaging:
 
   [ ] Better, automatic lib documentation
+  [ ] Rename lib/*/*/*.cpp to lib/*-*-*-*.cpp for more readability
 
 
 # EOF - vim: ts=2 sw=2 et syn=kiwi
