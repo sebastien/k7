@@ -16,7 +16,6 @@
 #define SHARED_OJECT_SUFFIX         ".so"
 #define JS_SUFFIX                   ".js"
 #define MODULE_SUFFIX_MAXLEN        4
-
 using namespace v8;
 
 /**
@@ -25,16 +24,17 @@ using namespace v8;
  * containing the path to the module. Don't forget to 'free' the string
  * afterwards.
 */
-char* FindModule (
-	const char* moduleName
-) {
+char* FindModule ( const char* moduleName) {
 	int   length      = strlen(moduleName);
 	char* module_path = (char*)malloc((length + MODULE_SUFFIX_MAXLEN + 1)*sizeof(char));
+
 	strcpy(module_path, moduleName);
+
 	// We replace the '.' in the modulename by directory separators "/"
 	for( char* offset=module_path ; offset!=NULL ; offset=strpbrk(offset,".") ) {
 		if (offset!=module_path) { *(offset) = '/'; }
 	}
+
 	// We look for a '.so' file
 	strcpy((module_path+length), SHARED_OJECT_SUFFIX);
 	FILE* fd = fopen(module_path,"r");
@@ -42,6 +42,7 @@ char* FindModule (
 		fclose(fd);
 		return module_path;
 	}
+
 	// Or for a '.js' file
 	strcpy((module_path+length), JS_SUFFIX);
 	fd = fopen(module_path,"r");
