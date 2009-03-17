@@ -19,6 +19,7 @@ V8 C++ extension:
 Packaging:
 
   [ ] Better, automatic lib documentation
+  [ ] Rename lib/*/*/*.cpp to lib/*-*-*-*.cpp for more readability
 
 Libraries:
 
