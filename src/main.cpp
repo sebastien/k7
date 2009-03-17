@@ -16,7 +16,6 @@
 
 using namespace v8;
 
-bool ExecuteString(v8::Handle<v8::String> source, v8::Handle<v8::Value> name, bool print_result);
 
 // ----------------------------------------------------------------------------
 //
@@ -25,14 +24,22 @@ bool ExecuteString(v8::Handle<v8::String> source, v8::Handle<v8::Value> name, bo
 // ----------------------------------------------------------------------------
 
 IMPORT(system_posix)
+IMPORT(system_k7_modules)
 IMPORT(net_http_server_shttpd)
-IMPORT(net_http_server_fcgi)
-IMPORT(net_http_client_curl)
+IMPORT(data_formats_json)
+#ifdef WITH_FCGI
+	IMPORT(net_http_server_fcgi)
+#endif
+#ifdef WITH_CURL
+	IMPORT(net_http_client_curl)
+#endif
 
 ENVIRONMENT
 	#include "core.h"
 	EVAL(CORE_JS)
 	LOAD("system.posix",          system_posix);
+	LOAD("system.k7.modules",     system_k7_modules);
+	LOAD("data.formats.json",     data_formats_json);
 	LOAD("net.http.server.shttpd",net_http_server_shttpd);
 #ifdef WITH_FCGI
 	LOAD("net.http.server.fcgi",  net_http_server_fcgi);

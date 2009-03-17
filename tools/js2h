@@ -18,5 +18,8 @@ else:
 	f = file(source,'r')
 	r = []
 	for c in f.read():
-		r.append(repr(c))
+		if c == "'":
+			r.append("'\\''")
+		else:
+			r.append(repr(c))
 	print "static const char %s[] = {%s};" % (name, ",".join(r))
