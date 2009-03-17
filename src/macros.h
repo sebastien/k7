@@ -4,7 +4,7 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 13-Dec-2008
+// Last modification : 17-Mar-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_MACROS__
@@ -12,6 +12,8 @@
 
 #include <v8.h>
 #include <k7.h>
+
+using namespace v8;
 
 // ----------------------------------------------------------------------------
 //
@@ -149,6 +151,7 @@
 #define ENVIRONMENT                 void SetupEnvironment (v8::Handle<v8::Object> global) {
 #define IMPORT(function)            extern "C" v8::Handle<v8::Object> function(v8::Handle<v8::Object> module);
 #define LOAD(moduleName,function)   function(EnsureModule(global,moduleName));
+#define EVAL(source)                ExecuteString(JS_str(source), JS_undefined, false);
 
 #endif
 // EOF - vim: ts=4 sw=4 noet

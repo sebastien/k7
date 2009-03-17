@@ -1,6 +1,10 @@
+Top priority:
+
+  [ ] Primitive to load a JavaScript file (could be done using POSIX open/read and JS eval)
+
 Makefile:
 
-  [ ] Variables to ENABLE_MODULE
+  [X] Variables to ENABLE_MODULE
   [ ] Detect dependencies (curl.h, etc)
   [ ] Test on OSX
   [ ] Test on MinGW
@@ -9,11 +13,17 @@ V8 C++ extension:
 
   [ ] Dynamic .so loader
   [ ] Dynamic .js loader
+  [ ] Embed   .js files in interpreter
   [ ] Pluggable Exception reporter 
 
 Packaging:
 
   [ ] Better, automatic lib documentation
+
+Libraries:
+
+  [ ] libjio
+  [ ] asynchronous io
 
 
 # EOF - vim: ts=2 sw=2 et syn=kiwi

@@ -13,10 +13,15 @@ BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a
 
 V8_INCLUDE            =deps/v8/include
 V8_BINARY             =deps/v8/libv8.a
+JS2H                  =tools/js2h
 SOURCES               =$(wildcard src/*.cpp)
+SOURCES_JS            =$(wildcard src/*.js)
+SOURCES_H             =$(SOURCES_JS:%.js=%.h)
 SOURCES_API           =$(shell find lib -name "*.api")
 HEADERS               =$(wildcard src/*.h)
 MODULES               =$(wildcard lib/*.cpp lib/*/*.cpp lib/*/*/*.cpp lib/*/*/*/*.cpp)
+MODULES_JS            =$(wildcard lib/*.js lib/*/*.js lib/*/*/*.js lib/*/*/*/*.js)
+MODULES_H             =$(MODULES_JS:%.js=%.h)
 OBJECTS               =$(SOURCES:src/%.cpp=build/%.o)
 SOBJECTS              =$(MODULES:lib/%.cpp=build/%.o)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
@@ -33,13 +38,15 @@ ifneq ($(strip $(HAS_FCGI)),)
 	BUILD_LIBS        +=-lfcgi
 endif
 
-all: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(BUILD_LkIBS) $(V8_BINARY)
+all: $(MODULES_H) $(SOURCES_H) $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(BUILD_LIBS)  $(V8_BINARY)
 	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
 
 info:
-	@echo Modules: $(MODULES)
-	@echo Sources: $(SOURCES)
-	@echo API:     $(SOURCES_API)
+	@echo "Modules (native): $(MODULES)"
+	@echo "Modules (js):     $(MODULES_JS)"
+	@echo "Modules (h):      $(MODULES_H)"
+	@echo "Sources:          $(SOURCES)"
+	@echo "API:              $(SOURCES_API)"
 
 api: k7-api.html
 	
@@ -62,7 +69,6 @@ deps/mongoose:
 deps/shttpd/src/libshttpd.a:
 	cd deps/shttpd/src && make unix LIBS="-ldl -lpthread"
 
-
 deps/shttpd:
 	cd deps && wget 'http://voxel.dl.sourceforge.net/sourceforge/shttpd/shttpd-1.42.tar.gz' && tar fvxz shttpd-1.42.tar.gz && rm shttpd-1.42.tar.gz && mv shttpd-1.42 shttpd
 
@@ -73,9 +79,12 @@ build/%.o: src/%.cpp $(HEADERS) build deps/v8
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
 
 #g++ $(INCLUDES) -fPIC $< -o $@ $(V8_BINARY) $(BUILD_LIBS)
-build/%.o: lib/%.cpp $(HEADERS) build
+build/%.o: lib/%.cpp $(HEADERS) $(MODULES_H) build
 	@mkdir -p `dirname $@` || true
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
+
+%.h: %.js $(JS2H)
+	$(JS2H) $< > $@
 
 k7-api.html: $(SOURCES_API)
 	sugar -a$@ -ljs $(SOURCES_API)

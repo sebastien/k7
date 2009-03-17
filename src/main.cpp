@@ -16,6 +16,8 @@
 
 using namespace v8;
 
+bool ExecuteString(v8::Handle<v8::String> source, v8::Handle<v8::Value> name, bool print_result);
+
 // ----------------------------------------------------------------------------
 //
 // K7 ENVIRONMENT
@@ -28,6 +30,8 @@ IMPORT(net_http_server_fcgi)
 IMPORT(net_http_client_curl)
 
 ENVIRONMENT
+	#include "core.h"
+	EVAL(CORE_JS)
 	LOAD("system.posix",          system_posix);
 	LOAD("net.http.server.shttpd",net_http_server_shttpd);
 #ifdef WITH_FCGI
@@ -43,11 +47,6 @@ END
 // BASIC SHELL FUNCTIONS
 //
 // ----------------------------------------------------------------------------
-
-bool ExecuteString(v8::Handle<v8::String> source,
-                   v8::Handle<v8::Value> name,
-                   bool print_result);
-
 // The callback that is invoked by v8 whenever the JavaScript 'print'
 // function is called.  Prints its arguments on stdout separated by
 // spaces and ending with a newline.
