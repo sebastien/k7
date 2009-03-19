@@ -4,7 +4,7 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 27-Sep-2008
+// Last modification : 19-Mar-2009
 // ----------------------------------------------------------------------------
 
 #include <v8.h>
@@ -15,7 +15,6 @@
 #include <time.h>
 
 using namespace v8;
-
 
 // ----------------------------------------------------------------------------
 //
@@ -35,10 +34,12 @@ IMPORT(data_formats_json)
 #endif
 
 ENVIRONMENT
+{
 	#include "core.h"
 	EVAL(CORE_JS)
+
 	LOAD("system.posix",          system_posix);
-	LOAD("system.k7.modules",     system_k7_modules);
+	//LOAD("system.k7.modules",     system_k7_modules);
 	LOAD("data.formats.json",     data_formats_json);
 	LOAD("net.http.server.shttpd",net_http_server_shttpd);
 #ifdef WITH_FCGI
@@ -47,6 +48,7 @@ ENVIRONMENT
 #ifdef WITH_CURL
 	LOAD("net.http.client.curl",  net_http_client_curl);
 #endif
+}
 END
 
 // ----------------------------------------------------------------------------
@@ -71,70 +73,114 @@ FUNCTION(Print)
 	return JS_undefined;
 END
 
-v8::Handle<v8::String> ReadFile(const char* name) {
-  FILE* file = fopen(name, "rb");
-  if (file == NULL) return v8::Handle<v8::String>();
+Handle<Value> ReadFile (FILE *file) {
+	if (
+		file == NULL
+	) return ThrowException(String::New("Could not read file"));
+	
+	std::string data;
+	char c;
+	while ( (c = fgetc(file)) && !feof(file) ) {
+		data.push_back(c);
+	}
+	
+	return String::New(data.c_str(), strlen(data.c_str()));	
+}
 
-  fseek(file, 0, SEEK_END);
-  int size = ftell(file);
-  rewind(file);
+Handle<Value> ReadFile (const char* name) {
+	return ReadFile(fopen(name, "rb"));
+}
 
-  char* chars = new char[size + 1];
-  chars[size] = '\0';
-  for (int i = 0; i < size;) {
-    int read = fread(&chars[i], 1, size - i, file);
-    i += read;
-  }
-  fclose(file);
-  v8::Handle<v8::String> result = v8::String::New(chars, size);
-  delete[] chars;
-  return result;
+void ReportException(TryCatch* try_catch) {
+	HandleScope handle_scope;
+	String::Utf8Value exception(try_catch->Exception());
+	Handle<Message> message = try_catch->Message();
+	if (message.IsEmpty()) {
+		// V8 didn't provide any extra information about this error; just
+		// print the exception.
+		fprintf(stderr, "%s\n", *exception);
+	} else {
+		// Print (filename):(line number): (message).
+		String::Utf8Value filename(message->GetScriptResourceName());
+		int linenum = message->GetLineNumber();
+		fprintf(stderr, "%s:%i: %s\n", *filename, linenum, *exception);
+		// Print line of source code.
+		String::Utf8Value sourceline(message->GetSourceLine());
+		fprintf(stderr, "%s\n", *sourceline);
+		// Print wavy underline (GetUnderline is deprecated).
+		int start = message->GetStartColumn();
+		for (int i = 0; i < start; i++) {
+			fprintf(stderr, " ");
+		}
+		int end = message->GetEndColumn();
+		for (int i = start; i < end; i++) {
+			fprintf(stderr, "^");
+		}
+		fprintf(stderr, "\n");
+	}
+}
+
+// Executes a string within the current v8 context.
+bool ExecuteString (
+	Handle<String> source,
+	Handle<Value> name,
+	bool print_result
+) {
+	
+	if (source->Length() == 0) return true;
+	
+	HandleScope handle_scope;
+	TryCatch try_catch;
+	
+	// remove the #! line if one exists.
+	String::Utf8Value utf8_value(source);
+	char *tmp = new char[source->Length()];
+	strcpy(tmp, *utf8_value);
+	int shebanger = 0, size = strlen(tmp);
+	if (tmp[0] == '#' && tmp[1] == '!') {
+		while (tmp[shebanger] != '\n' && tmp[shebanger] != '\0') shebanger ++;
+		source = String::New(tmp+shebanger, size-shebanger);
+	}
+	delete[] tmp;
+	
+	Handle<Script> script = Script::Compile(source, name);
+	if (script.IsEmpty()) {
+		// Print errors that happened during compilation.
+		ReportException(&try_catch);
+		return false;
+	}
+	Handle<Value> result = script->Run();
+	if (result.IsEmpty()) {
+		// Print errors that happened during execution.
+		ReportException(&try_catch);
+		return false;
+	}
+	
+	if (print_result) {
+		// print the returned value.
+		String::AsciiValue str(result);
+		
+		printf("%s\n", *str);
+	}
+	return true;
 }
 
 // The read-eval-execute loop of the shell.
 void RunShell(v8::Handle<v8::Context> context) {
-  printf("K7/V8 version %s\n", v8::V8::GetVersion());
-  static const int kBufferSize = 256;
-  while (true) {
-    char buffer[kBufferSize];
-    printf("> ");
-    char* str = fgets(buffer, kBufferSize, stdin);
-    if (str == NULL) break;
-    v8::HandleScope handle_scope;
-    ExecuteString(v8::String::New(str), v8::Undefined(), true);
-  }
-  printf("\n");
-}
 
-// Executes a string within the current v8 context.
-bool ExecuteString(v8::Handle<v8::String> source,
-                   v8::Handle<v8::Value> name,
-                   bool print_result) {
-  v8::HandleScope handle_scope;
-  v8::TryCatch try_catch;
-  v8::Handle<v8::Script> script = v8::Script::Compile(source, name);
-  if (script.IsEmpty()) {
-    // Print errors that happened during compilation.
-    v8::String::AsciiValue error(try_catch.Exception());
-    printf("%s\n", *error);
-    return false;
-  } else {
-    v8::Handle<v8::Value> result = script->Run();
-    if (result.IsEmpty()) {
-      // Print errors that happened during execution.
-      v8::String::AsciiValue error(try_catch.Exception());
-      printf("%s\n", *error);
-      return false;
-    } else {
-      if (print_result && !result->IsUndefined()) {
-        // If all went well and the result wasn't undefined then print
-        // the returned value.
-        v8::String::AsciiValue str(result);
-        printf("%s\n", *str);
-      }
-      return true;
-    }
-  }
+	printf("K7/V8 version %s\n", v8::V8::GetVersion());
+	static const int kBufferSize = 256;
+
+	while (true) {
+		char buffer[kBufferSize];
+		printf("> ");
+		char* str = fgets(buffer, kBufferSize, stdin);
+		if (str == NULL) break;
+		v8::HandleScope handle_scope;
+		ExecuteString(v8::String::New(str), v8::Undefined(), true);
+	}
+
+	printf("\n");
 }
 
 // ----------------------------------------------------------------------------
@@ -143,7 +189,7 @@ bool ExecuteString(v8::Handle<v8::String> source,
 //
 // ----------------------------------------------------------------------------
 
-int main(int argc, char ** argv) {
+int main(int argc, char** argv, char** env) {
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 	v8::HandleScope handle_scope;
 
@@ -156,7 +202,7 @@ int main(int argc, char ** argv) {
 	// Enter the newly created execution environment.
 	v8::Context::Scope context_scope(context);
 	context->Global()->Set(JS_str("print"), v8::FunctionTemplate::New(Print)->GetFunction()); \
-	SetupEnvironment(context->Global());
+	SetupEnvironment(context->Global(), argc, argv, env);
 
 	bool run_shell = (argc == 1);
 	for (int i = 1; i < argc; i++) {
@@ -169,7 +215,7 @@ int main(int argc, char ** argv) {
 			// Use all other arguments as names of files to load and run.
 			v8::HandleScope handle_scope;
 			v8::Handle<v8::String> file_name = v8::String::New(str);
-			v8::Handle<v8::String> source = ReadFile(str);
+			v8::Handle<v8::String> source = ReadFile(str)->ToString();
 			context->Global()->Set(JS_str("__file__"), file_name);
 			if (source.IsEmpty()) {
 				printf("Error reading '%s'\n", str);
