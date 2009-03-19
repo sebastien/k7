@@ -39,7 +39,7 @@ ENVIRONMENT
 	EVAL(CORE_JS)
 
 	LOAD("system.posix",          system_posix);
-	//LOAD("system.k7.modules",     system_k7_modules);
+	LOAD("system.k7.modules",     system_k7_modules);
 	LOAD("data.formats.json",     data_formats_json);
 	LOAD("net.http.server.shttpd",net_http_server_shttpd);
 #ifdef WITH_FCGI
@@ -73,22 +73,24 @@ FUNCTION(Print)
 	return JS_undefined;
 END
 
-Handle<Value> ReadFile (FILE *file) {
-	if (
-		file == NULL
-	) return ThrowException(String::New("Could not read file"));
-	
-	std::string data;
-	char c;
-	while ( (c = fgetc(file)) && !feof(file) ) {
-		data.push_back(c);
-	}
-	
-	return String::New(data.c_str(), strlen(data.c_str()));	
-}
+v8::Handle<v8::String> ReadFile(const char* name) {
+  FILE* file = fopen(name, "rb");
+  if (file == NULL) return v8::Handle<v8::String>();
 
-Handle<Value> ReadFile (const char* name) {
-	return ReadFile(fopen(name, "rb"));
+  fseek(file, 0, SEEK_END);
+  int size = ftell(file);
+  rewind(file);
+
+  char* chars = new char[size + 1];
+  chars[size] = '\0';
+  for (int i = 0; i < size;) {
+    int read = fread(&chars[i], 1, size - i, file);
+    i += read;
+  }
+  fclose(file);
+  v8::Handle<v8::String> result = v8::String::New(chars, size);
+  delete[] chars;
+  return result;
 }
 
 void ReportException(TryCatch* try_catch) {
@@ -121,48 +123,34 @@ void ReportException(TryCatch* try_catch) {
 }
 
 // Executes a string within the current v8 context.
-bool ExecuteString (
-	Handle<String> source,
-	Handle<Value> name,
-	bool print_result
-) {
-	
-	if (source->Length() == 0) return true;
-	
-	HandleScope handle_scope;
-	TryCatch try_catch;
-	
-	// remove the #! line if one exists.
-	String::Utf8Value utf8_value(source);
-	char *tmp = new char[source->Length()];
-	strcpy(tmp, *utf8_value);
-	int shebanger = 0, size = strlen(tmp);
-	if (tmp[0] == '#' && tmp[1] == '!') {
-		while (tmp[shebanger] != '\n' && tmp[shebanger] != '\0') shebanger ++;
-		source = String::New(tmp+shebanger, size-shebanger);
-	}
-	delete[] tmp;
-	
-	Handle<Script> script = Script::Compile(source, name);
-	if (script.IsEmpty()) {
-		// Print errors that happened during compilation.
-		ReportException(&try_catch);
-		return false;
-	}
-	Handle<Value> result = script->Run();
-	if (result.IsEmpty()) {
-		// Print errors that happened during execution.
-		ReportException(&try_catch);
-		return false;
-	}
-	
-	if (print_result) {
-		// print the returned value.
-		String::AsciiValue str(result);
-		
-		printf("%s\n", *str);
-	}
-	return true;
+bool ExecuteString(v8::Handle<v8::String> source,
+                   v8::Handle<v8::Value> name,
+                   bool print_result) {
+  v8::HandleScope handle_scope;
+  v8::TryCatch try_catch;
+  v8::Handle<v8::Script> script = v8::Script::Compile(source, name);
+  if (script.IsEmpty()) {
+    // Print errors that happened during compilation.
+    v8::String::AsciiValue error(try_catch.Exception());
+    printf("%s\n", *error);
+    return false;
+  } else {
+    v8::Handle<v8::Value> result = script->Run();
+    if (result.IsEmpty()) {
+      // Print errors that happened during execution.
+      v8::String::AsciiValue error(try_catch.Exception());
+      printf("%s\n", *error);
+      return false;
+    } else {
+      if (print_result && !result->IsUndefined()) {
+        // If all went well and the result wasn't undefined then print
+        // the returned value.
+        v8::String::AsciiValue str(result);
+        printf("%s\n", *str);
+      }
+      return true;
+    }
+  }
 }
 
 // The read-eval-execute loop of the shell.
