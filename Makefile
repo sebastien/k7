@@ -3,9 +3,9 @@
 # curl.h    - libcurl*-dev
 PRODUCT               =k7
 
-PLATFORM              =$(shell uname -r)
+PLATFORM              =$(shell uname -s)
 CPP                   =g++
-CPPFLAGS              =
+CPPFLAGS              =-g
 BUILD_DIR             =build
 BUILD_LIBS            =-lpthread -ldl
 # NOTE: On OSX, I think -liconv is necessary
@@ -29,6 +29,9 @@ INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 # Modules
 HAS_CURL              =$(shell locate include/curl/curl.h)
 HAS_FCGI              =$(shell locate include/fastcgi.h)
+ifeq  ($(PLATFORM),Darwin)
+	BUILD_LIBS        +=-liconv
+endif
 ifneq ($(strip $(HAS_CURL)),)
 	CPPFLAGS          +=-DWITH_CURL
 	BUILD_LIBS        +=-lcurl
