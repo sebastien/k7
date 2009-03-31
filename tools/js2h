@@ -22,4 +22,5 @@ else:
 			r.append("'\\''")
 		else:
 			r.append(repr(c))
+	r.append("'\\0'")
 	print "static const char %s[] = {%s};" % (name, ",".join(r))

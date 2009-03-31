@@ -8,7 +8,7 @@ CPP                   =g++
 CPPFLAGS              =-g
 BUILD_DIR             =build
 BUILD_LIBS            =-lpthread -ldl
-# NOTE: On OSX, I think -liconv is necessary
+# NOTE: On OSX, I think -liconv is necessary, search for Darwin in Makefile
 BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a
 
 V8_INCLUDE            =deps/v8/include
@@ -41,7 +41,7 @@ ifneq ($(strip $(HAS_FCGI)),)
 	BUILD_LIBS        +=-lfcgi
 endif
 
-all: $(MODULES_H) $(SOURCES_H) $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(BUILD_LIBS)  $(V8_BINARY)
+all: $(MODULES_H) $(SOURCES_H) $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(BUILD_LIBS) $(V8_BINARY)
 	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
 
 info:

@@ -13,7 +13,6 @@
 #include <string>
 #include <time.h>
 
-//v8::Handle<v8::Value> ReadFile (const char*);
 bool ExecuteString(v8::Handle<v8::String> source, v8::Handle<v8::Value> name, bool print_result);
 
 #endif

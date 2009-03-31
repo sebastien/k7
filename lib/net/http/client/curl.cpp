@@ -5,7 +5,7 @@
 //                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
 // -----------------------------------------------------------------------------
 // Creation date     : 13-Dec-2008
-// Last modification : 24-Feb-2009
+// Last modification : 31-Mar-2009
 // -----------------------------------------------------------------------------
 
 #ifdef WITH_CURL
@@ -110,11 +110,24 @@ static char* convert_string_alloc(const char* str, const char* from_codeset, con
 		goto out;
 
 again:
-#ifdef ICONV_CONST
-	err = iconv(cd, &str, &inbytes_remaining, &outp, &outbytes_remaining);
+
+// Special thanks to the mcalhoun on MacPorts for finding this one.
+// http://trac.macports.org/ticket/18258#comment:35
+// libiconv is a mess. For some platforms/version the prototype of inbuf is                                                                                                                               
+// "const char **", for others it is "char **". C++ requires the proper cast to                                                                                                                           
+// avoid a compile error, that is were the CASTNEEDED is for.                                                                                                                                             
+#if ((defined(_LIBICONV_VERSION) && (_LIBICONV_VERSION>=0x0109) && \
+      !((defined(_OS_MAC_) || defined(Q_OS_MACX) )&& (_LIBICONV_VERSION==0x010B))) \
+    || defined(_OS_SOLARIS_) \
+    || defined(_OS_NETBSD_)  \
+    )
+#define CASTNEEDED(x) (x)
 #else
-	err = iconv(cd, const_cast<char**>(&str), &inbytes_remaining, &outp, &outbytes_remaining);
+#define CASTNEEDED(x) (char **)(x)
 #endif
+
+	err = iconv(cd, CASTNEEDED(&str), &inbytes_remaining, &outp, &outbytes_remaining);
+
 	if (err == (size_t) - 1) {
 		switch (errno) {
 			case EINVAL:

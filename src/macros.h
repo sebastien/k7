@@ -4,7 +4,7 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 17-Mar-2009
+// Last modification : 31-Mar-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_MACROS__
@@ -33,6 +33,8 @@ using namespace v8;
 #define V8_FT(f)                       v8::FunctionTemplate::New(f)
 #define JS_obj(o)                      v8::Object::New(o)
 #define JS_bool(b)                     v8::Boolean::New(b)
+#define JS_throw(t, s)                 ThrowException(Exception::t(String::New(s)))
+#define JS_error(s)                    ThrowException(Exception::Error(String::New(s)))
 
 // ----------------------------------------------------------------------------
 //
