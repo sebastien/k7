@@ -53,6 +53,7 @@ using namespace v8;
 #define ARG_str(v,i)                   v8::String::AsciiValue v(args[i]);
 #define ARG_utf8(v,i)                  v8::String::Utf8Value  v(args[i])
 #define ARG_obj(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
+#define ARG_obj(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
 #define ARG_array(name, c) \
 		if (!args[(c)]->IsArray()) { \
 			//std::ostringstream __k7_e; \
@@ -60,6 +61,15 @@ using namespace v8;
 			//return ThrowException(String::New(__k7_e.str().c_str())); \
 		} \
 		Handle<Array> name = Handle<Array>::Cast(args[(c)])
+#define ARG_fn(name, c) \
+		if (!args[(c)]->IsFunction()) { \
+			//std::ostringstream __k7_e; \
+			//__k7_e << "Exception: argument error." << __func__ << " expects function for argument " << c << "."; \
+			//return ThrowException(String::New(__k7_e.str().c_str())); \
+		} \
+		Handle<Function> name = Handle<Function>::Cast(args[(c)])
+
+
 
 // ----------------------------------------------------------------------------
 //

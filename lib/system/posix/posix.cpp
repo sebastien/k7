@@ -121,6 +121,39 @@ FUNCTION(posix_writefile)
 }
 END
 
+// See this good tutorial for the pthreads API
+// https://computing.llnl.gov/tutorials/pthreads/
+
+OBJECT(posix_PTHREAD,1,pthread_t* thread)
+	INTERNAL(0,thread)
+	return self;
+END
+
+void* posix_pthread_create_callback(void* context) {
+	//ARG_COUNT(1);
+	//ARG_obj(callback_context,0);
+	printf("NEW THREAD STARTED...\n");
+	//Handle<Function> callback = result->Get(JS_str("callback"));
+	//(*callback).Call(callback_context,0, NULL)
+	// TODO: We should release the callback context
+}
+
+FUNCTION(posix_pthread_create)
+	ARG_COUNT(2);
+	//ARG_fn(callback,  0);
+	//ARG_obj(arguments, 1);
+	//Persistent<Arguments> thread_arguments = args;
+	// FIXME: This won't work, of course
+
+	pthread_t thread;
+	Handle<Object> result = posix_PTHREAD(&thread);
+	//result->Set(JS_str("callback"),callback);
+	//result->Set(JS_str("arguments"),arguments);
+	//void* (*)(void*) thread_callback = (void * (*) (void *)) posix_pthread_create_callback;
+	//pthread_create(&thread, NULL, thread_callback, result);
+	return result;
+END
+
 MODULE(system_posix,"system.posix")
 	// FIXME: When I set the module 'time' slot to a string, accessing the slot
 	// from JavaScript works, but when I BIND it to the posix_time function, the
@@ -137,6 +170,7 @@ MODULE(system_posix,"system.posix")
 	BIND("popen",     posix_popen);
 	BIND("pclose",    posix_pclose);
 	BIND("system",    posix_system);
+	BIND("pthread_create",  posix_pthread_create);
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet
