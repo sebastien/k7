@@ -133,24 +133,34 @@ void* posix_pthread_create_callback(void* context) {
 	//ARG_COUNT(1);
 	//ARG_obj(callback_context,0);
 	printf("NEW THREAD STARTED...\n");
-	//Handle<Function> callback = result->Get(JS_str("callback"));
-	//(*callback).Call(callback_context,0, NULL)
+
+	Locker locker;
+	HandleScope HandleScope;
+
+	Object* context_obj = reinterpret_cast<Object*>(context);
+
+	Handle<Function> callback_v = Handle<Function>::Cast(context_obj->Get(JS_str("callback")));
+	callback_v->Call(v8::Context::GetCurrent()->Global(), 0, NULL);
+
 	// TODO: We should release the callback context
 }
 
 FUNCTION(posix_pthread_create)
 	ARG_COUNT(2);
-	//ARG_fn(callback,  0);
-	//ARG_obj(arguments, 1);
+	//Handle<Function> callback = Handle<Function>::Cast(args[(0)]);
+	ARG_fn(callback,0);
+	ARG_obj(arguments, 1);
 	//Persistent<Arguments> thread_arguments = args;
 	// FIXME: This won't work, of course
 
-	pthread_t thread;
-	Handle<Object> result = posix_PTHREAD(&thread);
-	//result->Set(JS_str("callback"),callback);
-	//result->Set(JS_str("arguments"),arguments);
-	//void* (*)(void*) thread_callback = (void * (*) (void *)) posix_pthread_create_callback;
-	//pthread_create(&thread, NULL, thread_callback, result);
+	pthread_t* thread = (pthread_t*) malloc(sizeof(pthread_t));
+	Persistent<Object> result = Persistent<Object>::New(posix_PTHREAD(thread));
+	result->Set(JS_str("callback"),callback);
+	/* SEGFAULT HERE
+	result->Set(JS_str("arguments"),arguments);
+	*/
+	//pthread_create(thread, NULL, posix_pthread_create_callback, (void*)*result);
+	posix_pthread_create_callback((void*)*result);
 	return result;
 END
 

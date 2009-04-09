@@ -16,12 +16,19 @@ Packaging:
 
   [ ] Better, automatic lib documentation
 
+Features:
+
+  [ ] minify and bzip2 embedded JS code
+
 Libraries:
 
-  [ ] EventMachine
+  [ ] pthreads
   [ ] libcoroutine
-  [ ] libjio
+  [ ] HTML parser
+  [ ] jQuery integration
+  [ ] EventMachine
   [ ] asynchronous io
+  [ ] libjio
 
 
 # EOF - vim: ts=2 sw=2 et syn=kiwi

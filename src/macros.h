@@ -4,7 +4,7 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 31-Mar-2009
+// Last modification : 09-Apr-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_MACROS__
@@ -62,11 +62,6 @@ using namespace v8;
 		} \
 		Handle<Array> name = Handle<Array>::Cast(args[(c)])
 #define ARG_fn(name, c) \
-		if (!args[(c)]->IsFunction()) { \
-			//std::ostringstream __k7_e; \
-			//__k7_e << "Exception: argument error." << __func__ << " expects function for argument " << c << "."; \
-			//return ThrowException(String::New(__k7_e.str().c_str())); \
-		} \
 		Handle<Function> name = Handle<Function>::Cast(args[(c)])
 
 
