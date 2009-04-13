@@ -126,7 +126,8 @@ again:
 #define CASTNEEDED(x) (char **)(x)
 #endif
 
-	err = iconv(cd, CASTNEEDED(&str), &inbytes_remaining, &outp, &outbytes_remaining);
+	//err = iconv(cd, CASTNEEDED(&str), &inbytes_remaining, &outp, &outbytes_remaining);
+	err = iconv(cd, (char **)(&str), &inbytes_remaining, &outp, &outbytes_remaining);
 
 	if (err == (size_t) - 1) {
 		switch (errno) {
