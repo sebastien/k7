@@ -31,6 +31,8 @@ FUNCTION(posix_fopen)
 	ARG_utf8(path,0);
 	ARG_utf8(mode,1);
 	FILE* fd = fopen(*path,*mode);
+	if (fd == NULL)
+		return JS_null;
 	return posix_FILE(fd);
 END
 
@@ -46,6 +48,8 @@ FUNCTION(posix_popen)
 	ARG_utf8(path,0);
 	ARG_utf8(type,1);
 	FILE* fd = popen(*path,*type);
+	if (fd == NULL)
+		return JS_null;
 	return posix_FILE(fd);
 END
 
