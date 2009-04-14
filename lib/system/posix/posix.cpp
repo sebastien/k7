@@ -129,6 +129,7 @@ OBJECT(posix_PTHREAD,1,pthread_t* thread)
 	return self;
 END
 
+// NOTE: This is WIP code that will be moved to a "task" module using libtask API
 void* posix_pthread_create_callback(void* context) {
 	//ARG_COUNT(1);
 	//ARG_obj(callback_context,0);

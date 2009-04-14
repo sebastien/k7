@@ -410,7 +410,6 @@ namespace k7 {
 	
 	int main (int argc, char **argv, char **env) {
 
-		Locker lock;
 		HandleScope handle_scope;
 
 		// Create a template for the global object.
