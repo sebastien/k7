@@ -1,0 +1,30 @@
+
+Scopes
+======
+
+	Handles
+	-------
+
+	Dereference handle
+
+	Handle<Function> h;
+	Function         f = *h;
+
+Objects
+=======
+
+	Internal
+	Non-internal
+
+Accessing an object value
+=========================
+
+	access
+	print
+
+Setting an object value
+=======================
+
+	access
+	print
+
