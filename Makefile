@@ -2,10 +2,12 @@
 # fastcgi.h - libfcgi-dev
 # curl.h    - libcurl*-dev
 PRODUCT               =k7
+VERSION               =20090415
 
 PLATFORM              =$(shell uname -r)
 CPP                   =g++
 CPPFLAGS              =
+CPPFLAGS              += -DK7_VERSION=$(VERSION)
 BUILD_DIR             =build
 BUILD_LIBS            =-lpthread -ldl
 # NOTE: On OSX, I think -liconv is necessary

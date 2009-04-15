@@ -86,7 +86,7 @@ v8::Handle<v8::String> ReadFile(const char* name) {
 
 // The read-eval-execute loop of the shell.
 void RunShell(v8::Handle<v8::Context> context) {
-  printf("K7/V8 version %s\n", v8::V8::GetVersion());
+  printf("K7/V8 version %d/%s\n", K7_VERSION, v8::V8::GetVersion());
   static const int kBufferSize = 256;
   while (true) {
     char buffer[kBufferSize];
