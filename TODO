@@ -4,27 +4,31 @@ Top priority:
 
 Makefile:
 
-  [X] Variables to ENABLE_MODULE
   [ ] Detect dependencies (curl.h, etc)
   [ ] Test on OSX
   [ ] Test on MinGW
 
 V8 C++ extension:
 
-  [ ] Dynamic .so loader
-  [ ] Dynamic .js loader
-  [ ] Embed   .js files in interpreter
   [ ] Pluggable Exception reporter 
 
 Packaging:
 
   [ ] Better, automatic lib documentation
-  [ ] Rename lib/*/*/*.cpp to lib/*-*-*-*.cpp for more readability
+
+Features:
+
+  [ ] minify and bzip2 embedded JS code
 
 Libraries:
 
-  [ ] libjio
+  [ ] pthreads
+  [ ] libcoroutine
+  [ ] HTML parser
+  [ ] jQuery integration
+  [ ] EventMachine
   [ ] asynchronous io
+  [ ] libjio
 
 
 # EOF - vim: ts=2 sw=2 et syn=kiwi

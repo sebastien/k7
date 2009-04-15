@@ -4,14 +4,19 @@
 PRODUCT               =k7
 VERSION               =20090415
 
-PLATFORM              =$(shell uname -r)
+PLATFORM              =$(shell uname -s)
 CPP                   =g++
 CPPFLAGS              =
 CPPFLAGS              += -DK7_VERSION=$(VERSION)
 BUILD_DIR             =build
 BUILD_LIBS            =-lpthread -ldl
-# NOTE: On OSX, I think -liconv is necessary
+# NOTE: On OSX, I think -liconv is necessary, search for Darwin in Makefile
 BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a deps/libtask/libtask.a
+CPPFLAGS              =-g
+BUILD_DIR             =build
+BUILD_LIBS            =-lpthread -ldl
+# NOTE: On OSX, I think -liconv is necessary, search for Darwin in Makefile
+BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a
 
 V8_INCLUDE            =deps/v8/include
 V8_BINARY             =deps/v8/libv8.a
@@ -31,6 +36,9 @@ INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 # Modules
 HAS_CURL              =$(shell locate include/curl/curl.h)
 HAS_FCGI              =$(shell locate include/fastcgi.h)
+ifeq  ($(PLATFORM),Darwin)
+	BUILD_LIBS        +=-liconv
+endif
 ifneq ($(strip $(HAS_CURL)),)
 	CPPFLAGS          +=-DWITH_CURL
 	BUILD_LIBS        +=-lcurl
@@ -40,7 +48,7 @@ ifneq ($(strip $(HAS_FCGI)),)
 	BUILD_LIBS        +=-lfcgi
 endif
 
-all: $(MODULES_H) $(SOURCES_H) $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(BUILD_LIBS)  $(V8_BINARY)
+all: $(MODULES_H) $(SOURCES_H) $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
 	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
 
 info:

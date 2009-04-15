@@ -16,37 +16,38 @@
 # When writing new modules, they should fit in the following tree of modules.
 core:
     modules:
-        load:
-        get:
-        has:
-            is:  function
-            args: [moduleName]
-        PATH:
-            is:   global
-            doc:  A global array containing the modules search path
+        load
+        get
+        has
+        PATH
+    concurrency:pure JS
+        Channel
+        Future
+        Coroutine
+        Thread
+        Mutex
+        Semaphore
+        RendezVous
 system:
     posix:
-        fopen:
-            is:    function
-            args:   [path,mode]
-        fread:
-            is:    function
-            returns: integer
-        fwrite:
-            is:    function
-            returns: integer
-        fseek:
+        fopen
+        fread
+        fwrite
+        fseek
         fclose
     io:
-        File:
-            is:class
-            methods:
-                open
-                close
-                read
-                write
-                seek
-                stat
+        File:pure JS
+            open
+            close
+            read
+            write
+            seek
+            stat
+---
+db:
+    tokyocabinet
+    bsddb
+    mysql
 ---
 net:
     http:
@@ -56,45 +57,28 @@ net:
             curl:
 ---
 data:
-    structure:
+    structures:
         tree:
-            Node:
-                is:class
+            Node
     formats:
         xml:
-            fromString:
-                is:function
-            fromFile:
-                is:function
-            toString:
-                is:function
-            toFile:
-                is:function
+            fromString
+            fromFile
+            toString
+            toFile
         yaml:
-            fromString:
-                is:function
-            fromFile:
-                is:function
-            toString:
-                is:function
-            toFile:
-                is:function
+            fromString
+            fromFile
+            toString
+            toFile
         json:
-            fromString:
-                is:function
-            fromFile:
-                is:function
-            toString:
-                is:function
-            toFile:
-                is:function
+            fromString
+            fromFile
+            toString
+            toFile
         csv:
-            fromString:
-                is:function
-            fromFile:
-                is:function
-            toString:
-                is:function
-            toFile:
-                is:function
+            fromString
+            fromFile
+            toString
+            toFile
 # EOF

@@ -116,7 +116,10 @@ FUNCTION(Request_getEnv)
 	ARG_COUNT(1);
 	ARG_utf8(name,0);
 	ARG_shttpd_arg(arg);
-	return JS_str(shttpd_get_env(arg, *name));
+	const char *result = shttpd_get_env(arg, *name);
+	if (result == NULL)
+	    return JS_null;
+	return JS_str(result);
 END
 
 FUNCTION(Request_getVar)
@@ -135,7 +138,8 @@ FUNCTION(Request_getHeader)
 	ARG_COUNT(1)
 	ARG_utf8(name,0);
 	ARG_shttpd_arg(arg);
-	return JS_str(shttpd_get_header(arg, *name));
+    const char *result = shttpd_get_header(arg, *name);
+	return result ? JS_str(result) : JS_null;
 END
 
 // ----------------------------------------------------------------------------
