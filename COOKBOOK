@@ -28,3 +28,13 @@ Setting an object value
 	access
 	print
 
+V8 debugging
+============
+
+When you get segfaults while developing a module, make sure you have V8
+compiled with the 'mode=debug' option. To enable debug mode, do the following:
+
+>    cd deps/v8 && scons mode=debug
+
+And you'll have a 'libv8.a' compiled with debug mode !
+
