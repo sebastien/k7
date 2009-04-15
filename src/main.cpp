@@ -40,6 +40,9 @@ IMPORT(system_k7_modules);
 IMPORT(system_engine);
 IMPORT(data_formats_json);
 IMPORT(net_http_server_shttpd);
+#ifdef WITH_LIBTASK
+	IMPORT(core_concurrency_libtask);
+#endif
 #ifdef WITH_FCGI
 	IMPORT(net_http_server_fcgi);
 #endif
@@ -55,7 +58,7 @@ FUNCTION_DECL(EvalCX);
 // define the "SetupEnvironment" function
 ENVIRONMENT
 {
-	JSOBJ_set(global,"ENV",JSEnv(argc, argv, env));
+	//JSOBJ_set(global,"ENV",JSEnv(argc, argv, env));
 	JSOBJ_set(global,"print", JS_fn(Print));
 	JSOBJ_set(global,"include", JS_fn(Load));
 	JSOBJ_set(global,"evalcx", JS_fn(EvalCX));
@@ -68,6 +71,9 @@ ENVIRONMENT
 	LOAD("system.k7.modules", system_k7_modules);
 	LOAD("data.formats.json", data_formats_json);
 	LOAD("net.http.server.shttpd",net_http_server_shttpd);
+#ifdef WITH_LIBTASK
+	LOAD("core.concurrency.libtask", core_concurrency_libtask);
+#endif
 #ifdef WITH_FCGI
 	LOAD("net.http.server.fcgi", net_http_server_fcgi);
 #endif
@@ -421,6 +427,7 @@ namespace k7 {
 		// Enter the newly created execution environment.
 		Context::Scope context_scope(context);
 	
+		// FIXME: Disabled because of taskmain, should use POSIX env
 		SetupEnvironment(context->Global(), argc, argv, env);
 		
 		bool read_stdin = true;
@@ -475,8 +482,16 @@ namespace k7 {
 }
 
 #ifndef __K7_LIBRARY_ONLY__
-int main (int argc, char **argv, char **env) {
-	return k7::main(argc, argv, env);
+extern "C" {
+	#ifdef WITH_LIBTASK
+		void taskmain (int argc, char **argv) {
+			k7::main(argc, argv, NULL);
+		}
+	#else
+		int main (int argc, char **argv, char **env) {
+			return k7::main(argc, argv, env);
+		}
+	#endif
 }
 #endif
 

@@ -11,11 +11,6 @@ CPPFLAGS              += -DK7_VERSION=$(VERSION)
 BUILD_DIR             =build
 BUILD_LIBS            =-lpthread -ldl
 # NOTE: On OSX, I think -liconv is necessary, search for Darwin in Makefile
-BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a deps/libtask/libtask.a
-CPPFLAGS              =-g
-BUILD_DIR             =build
-BUILD_LIBS            =-lpthread -ldl
-# NOTE: On OSX, I think -liconv is necessary, search for Darwin in Makefile
 BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a
 
 V8_INCLUDE            =deps/v8/include
@@ -36,6 +31,7 @@ INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 # Modules
 HAS_CURL              =$(shell locate include/curl/curl.h)
 HAS_FCGI              =$(shell locate include/fastcgi.h)
+HAS_LIBTASK           =$(shell find deps/libtask -name task.h)
 ifeq  ($(PLATFORM),Darwin)
 	BUILD_LIBS        +=-liconv
 endif
@@ -46,6 +42,10 @@ endif
 ifneq ($(strip $(HAS_FCGI)),)
 	CPPFLAGS          +=-DWITH_FCGI
 	BUILD_LIBS        +=-lfcgi
+endif
+ifneq ($(HAS_LIBTASK),)
+	CPPFLAGS          += -DWITH_LIBTASK
+	BUILD_BINLIBS     += deps/libtask/libtask.a
 endif
 
 all: $(MODULES_H) $(SOURCES_H) $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
