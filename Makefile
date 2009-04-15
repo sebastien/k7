@@ -11,7 +11,7 @@ CPPFLAGS              += -DK7_VERSION=$(VERSION)
 BUILD_DIR             =build
 BUILD_LIBS            =-lpthread -ldl
 # NOTE: On OSX, I think -liconv is necessary
-BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a
+BUILD_BINLIBS         =$(V8_BINARY) deps/shttpd/src/libshttpd.a deps/libtask/libtask.a
 
 V8_INCLUDE            =deps/v8/include
 V8_BINARY             =deps/v8/libv8.a
@@ -76,6 +76,9 @@ deps/shttpd:
 
 deps/v8/libv8.a: deps/v8
 	cd deps/v8 && scons
+
+deps/libtask/libtask.a: deps/libtask
+	cd deps/libtask && make
 
 build/%.o: src/%.cpp $(HEADERS) build deps/v8
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
