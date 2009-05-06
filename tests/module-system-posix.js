@@ -14,4 +14,8 @@ var data  = posix.fread(1,1024,fd)
 print ("popen:" + data)
 posix.pclose(fd)
 
+var buf = new system.event.Buffer();
 
+buf.push8(11);
+var eleven = buf.pull8();
+print("eleven == "+eleven+"\n");
