@@ -47,8 +47,7 @@ using namespace v8;
  * the JavaScript environment.
  * See the 'posix.cpp' module for examples. */
 #define ARGC                           args.Length()
-#define ARG_COUNT(c)                   if ( args.Length() != c ) { \
-                                       return ThrowException(String::New("Insufficient arguments")); } 
+#define ARG_COUNT(c)                   if ( args.Length() != 0 ) {} 
 #define ARG_BETWEEN(a,b)               if ( a <= args.Length() <= b ) {} 
 #define ARG_int(n,c)                   int n=(int)(args[c]->Int32Value())
 #define ARG_str(v,i)                   v8::String::AsciiValue v(args[i]);
@@ -79,10 +78,7 @@ using namespace v8;
 #define END                            }
 #define THIS                           args.This()
 #define STUB                           return ThrowException(Exception::Error(String::New("Stub - Function not implemented")));
-#define SET_INTERNAL(ptr)       args.This()->SetInternalField(0, External::New((void*)ptr));
-#define GET_INTERNAL(type,var)  Local<Value> _intfld = args.This()->GetInternalField(0); \
-                                type* var = reinterpret_cast<type*>(Handle<External>::Cast(_intfld)->Value());
-
+ 
 // ----------------------------------------------------------------------------
 //
 // OBJECT MACROS
@@ -106,7 +102,7 @@ using namespace v8;
 	self->SetInternalField(i, v8::External::New((void*)value));
 
 #define EXTERNAL(type,name,object,indice) \
-	type name = (type) (v8::Local<v8::External>::Cast(object->GetInternalField(indice))->Value());
+	type name = (type) (v8::Local<v8::External>::Cast(object->GetInternalField(0))->Value());
 
 // ----------------------------------------------------------------------------
 //
@@ -123,7 +119,6 @@ using namespace v8;
 		__class__->SetClassName(v8::String::New(name)); 
 #define CONSTRUCTOR(c)       __class__->SetCallHandler(c);
 #define INTERNAL_FIELDS(i)   __object__->SetInternalFieldCount(i);
-#define HAS_INTERNAL         __object__->SetInternalFieldCount(1);
 #define END_CLASS            __module__->Set(__class_name__,__class__->GetFunction(),v8::PropertyAttribute(v8::ReadOnly|v8::DontDelete));}
 
 // ----------------------------------------------------------------------------

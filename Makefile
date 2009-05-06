@@ -29,7 +29,6 @@ INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 # Modules
 HAS_CURL              =$(shell locate include/curl/curl.h)
 HAS_FCGI              =$(shell locate include/fastcgi.h)
-HAS_EVENT              =$(shell locate include/event2/event.h)
 ifeq  ($(PLATFORM),Darwin)
 	BUILD_LIBS        +=-liconv
 endif
@@ -40,10 +39,6 @@ endif
 ifneq ($(strip $(HAS_FCGI)),)
 	CPPFLAGS          +=-DWITH_FCGI
 	BUILD_LIBS        +=-lfcgi
-endif
-ifneq ($(strip $(HAS_EVENT)),)
-    CPPFLAGS          +=-DWITH_EVENT
-    BUILD_LIBS        +=-levent
 endif
 
 all: $(MODULES_H) $(SOURCES_H) $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)

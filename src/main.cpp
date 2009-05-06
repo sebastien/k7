@@ -46,9 +46,6 @@ IMPORT(net_http_server_shttpd);
 #ifdef WITH_CURL
 	IMPORT(net_http_client_curl);
 #endif
-#ifdef WITH_EVENT
-    IMPORT(system_event);
-#endif
 
 // functions that will be put on the global object.
 FUNCTION_DECL(Print);
@@ -76,9 +73,6 @@ ENVIRONMENT
 #endif
 #ifdef WITH_CURL
 	LOAD("net.http.client.curl", net_http_client_curl);
-#endif
-#ifdef WITH_EVENT
-    LOAD("system.event", system_event);
 #endif
 }
 END
