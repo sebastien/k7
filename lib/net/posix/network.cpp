@@ -57,7 +57,6 @@ FUNCTION(posix_bind)
     struct sockaddr_in addr;
     if (0!=obj2addr(ip,&addr))
         THROW("invalid IP address");
-    printf("addr: %li port: %i\n",addr.sin_addr.s_addr,addr.sin_port);
     if (0!=bind(sock,(struct sockaddr*)&addr,sizeof addr)) 
         THROW(strerror(errno));
     return Undefined();
@@ -84,12 +83,24 @@ FUNCTION(posix_accept)
     return addrobj;
 END
 
+FUNCTION(posix_connect)
+    ARG_COUNT(2);
+    ARG_int(sock,0);
+    ARG_obj(ip,1);
+    struct sockaddr_in addr;
+    if (0!=obj2addr(ip,&addr))
+        THROW("invalid IP address");
+    if (0!=connect(sock,(struct sockaddr*)&addr,sizeof addr)) 
+        THROW(strerror(errno));
+    return Undefined();
+END
+
 MODULE(net_posix,"net.posix")
     BIND("socket_tcp",posix_socket_tcp);
     BIND("bind",posix_bind);
     BIND("listen",posix_listen);
     BIND("accept",posix_accept);
-    //BIND("connect",posix_connect);
+    BIND("connect",posix_connect);
     //SET_int("O_TRUNC",O_TRUNC);
 END_MODULE
 

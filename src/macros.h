@@ -81,7 +81,8 @@ using namespace v8;
 #define STUB                           return ThrowException(Exception::Error(String::New("Stub - Function not implemented")));
 #define SET_INTERNAL(ptr)       args.This()->SetInternalField(0, External::New((void*)ptr));
 #define GET_INTERNAL(type,var)  Local<Value> _intfld = args.This()->GetInternalField(0); \
-                                type* var = reinterpret_cast<type*>(Handle<External>::Cast(_intfld)->Value());
+                                type var = reinterpret_cast<type>(Handle<External>::Cast(_intfld)->Value());
+#define THROW(str)              return ThrowException(String::New(str));
 
 // ----------------------------------------------------------------------------
 //
@@ -153,6 +154,7 @@ using namespace v8;
 
 #define BIND(s,v)         self->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
 #define METHOD(s,v)       __object__->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
+#define BIND_CONST(s,v)     self->Set(JS_str(s),v);
 #define CLASS_METHOD(s,v) __class__->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
 
 // ----------------------------------------------------------------------------

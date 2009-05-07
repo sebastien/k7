@@ -9,7 +9,10 @@
 
 #include "macros.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
 #include <time.h>
+#include <fcntl.h>
 #include <string>
 
 // TODO: Add proper error handling
@@ -17,7 +20,7 @@
 using namespace v8;
 
 OBJECT(posix_FILE,1,FILE* file)
-	INTERNAL(0,file)
+	INTERNAL(0,file);
 	return self;
 END
 
@@ -169,6 +172,24 @@ FUNCTION(posix_pthread_create)
 	return result;
 END
 
+FUNCTION(posix_open)
+    ARG_COUNT(2);
+    ARG_str(name,0);
+    ARG_int(mode,1);
+    int fd = open(*name,mode,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+    if (fd<0)
+        return ThrowException(String::New(strerror(errno)));
+    else
+        return Integer::New(fd);
+END
+
+FUNCTION(posix_close)
+    ARG_COUNT(1);
+    ARG_int(fd,0);
+    close(fd);
+    return Undefined();
+END
+
 MODULE(system_posix,"system.posix")
 	// FIXME: When I set the module 'time' slot to a string, accessing the slot
 	// from JavaScript works, but when I BIND it to the posix_time function, the
@@ -185,7 +206,12 @@ MODULE(system_posix,"system.posix")
 	BIND("popen",     posix_popen);
 	BIND("pclose",    posix_pclose);
 	BIND("system",    posix_system);
-	BIND("pthread_create",  posix_pthread_create);
+	//BIND("pthread_create",  posix_pthread_create);
+    BIND("open",posix_open);
+    BIND("close",posix_close);
+    SET_int("O_RDWR",O_RDWR);
+    SET_int("O_CREAT",O_CREAT);
+    SET_int("O_TRUNC",O_TRUNC);
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet

@@ -36,6 +36,7 @@ Handle<Value> ReadFile (FILE*);
 
 // import libs from the "libs" folder.
 IMPORT(system_posix);
+IMPORT(net_posix);
 IMPORT(system_k7_modules);
 IMPORT(system_engine);
 IMPORT(data_formats_json);
@@ -67,6 +68,7 @@ ENVIRONMENT
 	EVAL(CORE_JS)
 
 	LOAD("system.posix", system_posix);
+    LOAD("net.posix",net_posix);
 	LOAD("system.engine", system_engine);
 	LOAD("system.k7.modules", system_k7_modules);
 	LOAD("data.formats.json", data_formats_json);
