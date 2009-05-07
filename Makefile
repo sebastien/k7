@@ -71,7 +71,8 @@ deps:
 	mkdir deps
 
 deps/v8:
-	cd deps && svn checkout http://v8.googlecode.com/svn/trunk v8
+	#cd deps && svn checkout http://v8.googlecode.com/svn/trunk v8
+	cd deps && svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge v8
 
 deps/mongoose:
 	cd deps && svn checkout http://mongoose.googlecode.com/svn/trunk/ mongoose
