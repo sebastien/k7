@@ -15,9 +15,21 @@
 #include "macros.h"
 #include <assert.h>
 
-void k7_reportException (const TryCatch* try_catch);
-bool k7_evalString (Handle<String> source, Handle<Value> fromFileName);
-int  k7_main (int argc, char **argv, char **env);
+using namespace v8;
+
+namespace k7 {
+
+	void setup (Handle<Object> global,int argc, char** argv, char** env);
+	void trace (const v8::TryCatch* try_catch);
+	bool execute (const char* source);
+	bool execute (const char* source, const char* fromFileName);
+	bool execute (Handle<String> source);
+	bool execute (Handle<String> source, Handle<Value> fromFileName);
+	Handle<Object> module(const char* fullName);
+	Handle<Object> module(Handle<Object>  parent, const char* moduleName, const char* fullName);
+	int main (int argc, char **argv, char **env);
+
+}
 
 #endif
 // EOF - vim: ts=4 sw=4 noet

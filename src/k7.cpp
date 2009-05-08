@@ -2,7 +2,7 @@
 // Project           : K7 - Standard Library for V8
 // -----------------------------------------------------------------------------
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
-// Author            : Isaac Schulter.                           <i@foohack.com>
+// Author            : Isaac Schulter                            <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
 // Last modification : 08-May-2009
@@ -44,9 +44,10 @@ IMPORT(net_http_server_fcgi);
 IMPORT(net_http_client_curl);
 #endif
 
-// This does the actual loading of modules
-ENVIRONMENT
-{
+/**
+ * Sets up the K7 environment, loading the module system and the shell
+*/
+void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env) {
 	LOAD("system.k7.modules",      system_k7_modules);
 	LOAD("system.k7.shell",        system_k7_shell);
 	LOAD("system.posix",           system_posix);
@@ -60,7 +61,6 @@ ENVIRONMENT
 	LOAD("net.http.client.curl",   net_http_client_curl);
 #endif
 }
-END
 
 // ----------------------------------------------------------------------------
 //
@@ -68,7 +68,10 @@ END
 //
 // ----------------------------------------------------------------------------
 
-void k7_reportException (const TryCatch* try_catch) {
+/**
+ *  Reports the given exception on stderr
+*/
+void k7::trace (const TryCatch* try_catch) {
 	HandleScope handle_scope;
 	String::Utf8Value exception(try_catch->Exception());
 	Handle<Message> message = try_catch->Message();
@@ -97,15 +100,23 @@ void k7_reportException (const TryCatch* try_catch) {
 	}
 }
 
-// Executes a string within the current v8 context.
-bool k7_evalString (Handle<String> source, Handle<Value> fromFileName) {
-	
+/**
+ * Executes the given C string, optionaly coming from the given file.
+*/
+bool k7::execute (const char* source) { return k7::execute(source, NULL); }
+bool k7::execute (const char* source, const char* fromFileName) {
+	return k7::execute(JS_str(source), JS_str(fromFileName));
+}
+
+/**
+ * Executes the given String, optionaly coming from the given file.
+*/
+bool k7::execute (Handle<String> source) { return k7::execute(NULL); }
+bool k7::execute (Handle<String> source, Handle<Value> fromFileName) {
 	if (source->Length() == 0) return true;
-	
 	HandleScope handle_scope;
 	TryCatch try_catch;
-	
-	// comment the #! line if one exists.
+	// Skip the first line if it is a  '#!'
 	String::Utf8Value utf8_value(source);
 	if (
 		(*utf8_value)[0] == '#' &&
@@ -114,23 +125,88 @@ bool k7_evalString (Handle<String> source, Handle<Value> fromFileName) {
 		(*utf8_value)[1] = (*utf8_value)[0] = '/';
 		source = String::New(*utf8_value);
 	}
-	
 	Handle<Script> script = Script::Compile(source, fromFileName);
 	if (script.IsEmpty()) {
 		// Print errors that happened during compilation.
-		k7_reportException(&try_catch);
+		k7::trace(&try_catch);
 		return false;
 	}
 	Handle<Value> result = script->Run();
 	if (result.IsEmpty()) {
 		// Print errors that happened during execution.
-		k7_reportException(&try_catch);
+		k7::trace(&try_catch);
 		return false;
 	}
 	return true;
 }
 
-int k7_main (int argc, char **argv, char **env) {
+Handle<Object> k7::module(const char* fullName) {
+	return k7::module(JS_GLOBAL, fullName, NULL);
+}
+
+Handle<Object> k7::module(Handle<Object>  parent, const char* moduleName, const char* fullName) {
+
+	// FIXME: I had to disable the HandleScope, as it seems like the created
+	// modules are garbage collected, and this causes problems.
+	// HandleScope       handle_scope;
+	Handle<Object>    module;
+
+	// TODO: Rewrite this in proper C++ style
+	// This section simply splits the "full.module.name" so that
+	// module_name = "full" and rest = "module.name" 
+	// and fullName =// "full.module.name"
+	const char*       rest = strpbrk(moduleName, ".");
+	char*             module_name;
+	if ( fullName == NULL ) {
+		fullName = moduleName;
+	}
+	if ( rest == NULL ) {
+		int len = strlen(moduleName);
+		module_name = (char*) malloc((len + 1) * sizeof(char));
+		strncpy(module_name, moduleName, len + 1); 
+	} else {
+		int len = rest - moduleName;
+		module_name = (char*) malloc((len  + 1) * sizeof(char));
+		strncpy(module_name, moduleName, len); 
+		module_name[len] = '\0';
+		rest ++;
+	}
+
+	// This is where we create the actual module object. The module name is
+	// bound to the "__module__" attribute.
+	Local<v8::String> name = v8::String::New(module_name);
+	if (parent->Has(name)) {
+		module = parent->Get(name)->ToObject();
+		// The module may have already been created by a submodule, so if this
+		// is the module we wanted to ensure, we make sure it has the __module__
+		// property.
+		if (rest == NULL) {
+			if (!module->Has(v8::String::New("__module__"))) {
+				module->Set (v8::String::New("__module__"), v8::String::New(fullName));
+			}
+		}
+	} else {
+		// We only set the __module__ slot for the module we are loading.
+		module = Object::New();
+		if (rest == NULL) {
+			module->Set(v8::String::New("__module__"), v8::String::New(fullName));
+		}
+		parent->Set(name,module);
+	}
+	free(module_name);
+
+	// If the module had prefixes, we make sure that the parent module exists
+	if ( rest == NULL ) {
+		return module;
+	} else {
+		return k7::module(module, rest, fullName);
+	}
+}
+
+/**
+ * This is the main function that sets up the K7 environment
+*/
+int k7::main (int argc, char **argv, char **env) {
 
 	HandleScope handle_scope;
 
@@ -140,64 +216,24 @@ int k7_main (int argc, char **argv, char **env) {
 	// Create a new execution environment containing the built-in
 	// functions
 	Handle<Context> context = Context::New(NULL, global);
+
 	// Enter the newly created execution environment.
 	Context::Scope context_scope(context);
 
-	SetupEnvironment(context->Global(), argc, argv, env);
-	
-	/*
-	bool read_stdin = true;
-	bool read_string = false;
-	bool process_flags = true;
-	bool process_single = false;
-	for (int i = 1; i < argc; i++) {
-		const char* str = argv[i];
-		
-		if (read_string) {
-			read_string = false;
-			read_stdin = false;
-			process_flags = false;
-			if (!ExecuteString(JS_str(str), JS_str("[command line arg]"), false)) return 1;
-			if (process_single) break;
-		} else if (str[0] != '-') {
-			// Use all other arguments as names of files to load and run.
-			// If there are any explicit files, then don't read stdin.
-			// @TODO: Each file should have an easy way to access the 
-			// argv that came after its name.  In other words, something like this:
-			// k7 file1.js -foo file1.js -bar
-			// should be roughly similar to:
-			// k7 file1.js -foo; k7 file1.js -bar;
-			// except that in the first case, they share a global context.
-			read_stdin = false;
-			process_flags = false;
-			if (!ExecuteFile(str)) return 1;
-			if (process_single) break;
-		} else if (process_flags && str[0] == '-') {
-			// is a flags!
-			if (strcmp(str, "--") == 0) {
-				process_flags = false;
-			} else if (strcmp(str, "-e") == 0) {
-				read_string = true;
-			} else if (strcmp(str, "-s") == 0 || strcmp(str, "--single") == 0) {
-				process_single = true;
-			} else if (
-				strcmp(str, "-?") == 0 || strcmp(str, "-h") == 0 || strcmp(str, "--help") == 0
-			) {
-				read_stdin = false;
-				printf(k7::help(), V8::GetVersion(), argv[0]);
-				return 0;
-			}
-		}
-		
-	}
-	if (read_stdin && !ExecuteFile("/dev/stdin")) return 1;
-	*/
+	k7::setup(context->Global(), argc, argv, env);
+
 	return 0;
 }
 
+// ----------------------------------------------------------------------------
+//
+// THE C MAIN
+//
+// ----------------------------------------------------------------------------
+
 #ifndef __K7_LIBRARY_ONLY__
 int main (int argc, char **argv, char **env) {
-	return k7_main(argc, argv, env);
+	return k7::main(argc, argv, env);
 }
 #endif
 

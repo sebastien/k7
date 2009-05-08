@@ -23,6 +23,8 @@ using namespace v8;
 /**
  * These macros are just shorthand to creat V8/JavaScript values that can be
  * passed to the V8 API or returned to the JavaScript environment */
+#define JS_CONTEXT                     v8::Context::GetCurrent()
+#define JS_GLOBAL                      JS_CONTEXT->Global()
 #define JS_str(s)                      v8::String::New(s)
 #define JS_str2(s,c)                   v8::String::New(s,c)
 #define JS_int(s)                      v8::Integer::New(s)
@@ -168,10 +170,9 @@ v8::Handle<Object> name(__VA_ARGS__) { \
  * These macros allow to declare a module initialization function and register
  * FUNCTIONs in this module. */
 #define LINK_TO(lib)
-#define ENVIRONMENT                 void k7_setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env) {
 #define IMPORT(function)            extern "C" v8::Handle<v8::Object> function(v8::Handle<v8::Object> module);
-#define LOAD(moduleName,function)   function(k7_ensureModule(global,moduleName));
-#define EVAL(source)                k7_evalString(JS_str(source));
+#define LOAD(moduleName,function)   function(k7::module(global, moduleName, NULL));
+#define EVAL(source)                k7::execute(source);
 
 #endif
 // EOF - vim: ts=4 sw=4 noet

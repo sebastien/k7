@@ -10,7 +10,7 @@
 #include "macros.h"
 #include <stdlib.h>
 #include <time.h>
-#include <string>
+#include <string.h>
 
 // TODO: Add proper error handling
 // #define MODULE "system.posix"

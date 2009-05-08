@@ -4,12 +4,13 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 17-Mar-2009
-// Last modification : 17-Mar-2009
+// Last modification : 08-May-2009
 // ----------------------------------------------------------------------------
+
+#include <k7.h>
 
 #include <stdlib.h>
 #include <time.h>
-#include "macros.h"
 #include "modules.h"
 
 FUNCTION(k7_module_resolve)
@@ -18,7 +19,17 @@ FUNCTION(k7_module_resolve)
  * ('native' or 'source') and its path on the file system. If the module
  * was not found, then 'undefined' is returned.
 */
+{
 	ARG_COUNT(0)
+}
+END
+
+FUNCTION(k7_module_ensure)
+{
+	ARG_COUNT(1)
+	ARG_str(fullName, 0);
+	return k7::module(*fullName);
+}
 END
 
 FUNCTION(k7_module_has)

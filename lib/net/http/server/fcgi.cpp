@@ -13,6 +13,7 @@
 #include <k7.h>
 
 #include <fcgiapp.h>
+#include <string.h>
 
 using namespace v8;
 
