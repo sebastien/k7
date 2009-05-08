@@ -49,7 +49,8 @@ END
 
 MODULE(system_k7_modules,"system.k7.modules")
 	#include "modules.h"
-	EVAL(MODULES_JS)
+	//EVAL(MODULES_JS)
+	EVAL("function(){return 2;}");
 	BIND("has",     k7_module_resolve);
 	BIND("resolve", k7_module_has);
 	BIND("load",    k7_module_load);

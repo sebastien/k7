@@ -49,6 +49,7 @@ IMPORT(net_http_client_curl);
 */
 void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env) {
 	LOAD("system.k7.modules",      system_k7_modules);
+	/*
 	LOAD("system.k7.shell",        system_k7_shell);
 	LOAD("system.posix",           system_posix);
 	LOAD("system.engine",          system_engine);
@@ -60,6 +61,7 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 #ifdef WITH_CURL
 	LOAD("net.http.client.curl",   net_http_client_curl);
 #endif
+*/
 }
 
 // ----------------------------------------------------------------------------
@@ -103,21 +105,23 @@ void k7::trace (const TryCatch* try_catch) {
 /**
  * Executes the given C string, optionaly coming from the given file.
 */
-bool k7::execute (const char* source) { return k7::execute(source, NULL); }
+bool k7::execute (const char* source) { return k7::execute(source, "(shell)"); }
 bool k7::execute (const char* source, const char* fromFileName) {
-	return k7::execute(JS_str(source), JS_str(fromFileName));
+	return k7::execute(JS_str(source), JS_str("fromFileName"));
 }
 
 /**
  * Executes the given String, optionaly coming from the given file.
 */
-bool k7::execute (Handle<String> source) { return k7::execute(NULL); }
+bool k7::execute (Handle<String> source) { return k7::execute(source, JS_str("(shell)")); }
 bool k7::execute (Handle<String> source, Handle<Value> fromFileName) {
 	if (source->Length() == 0) return true;
 	HandleScope handle_scope;
 	TryCatch try_catch;
+
 	// Skip the first line if it is a  '#!'
 	String::Utf8Value utf8_value(source);
+	/*
 	if (
 		(*utf8_value)[0] == '#' &&
 		(*utf8_value)[1] == '!'
@@ -125,6 +129,8 @@ bool k7::execute (Handle<String> source, Handle<Value> fromFileName) {
 		(*utf8_value)[1] = (*utf8_value)[0] = '/';
 		source = String::New(*utf8_value);
 	}
+	*/
+
 	Handle<Script> script = Script::Compile(source, fromFileName);
 	if (script.IsEmpty()) {
 		// Print errors that happened during compilation.
