@@ -68,7 +68,6 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 
 	LOAD("system.k7.modules",      system_k7_modules);
 	LOAD("system.k7.shell",        system_k7_shell);
-	/*
 	LOAD("system.posix",           system_posix);
 	LOAD("system.engine",          system_engine);
 	LOAD("data.formats.json",      data_formats_json);
@@ -79,7 +78,6 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 #ifdef WITH_CURL
 	LOAD("net.http.client.curl",   net_http_client_curl);
 #endif
-*/
 }
 
 // ----------------------------------------------------------------------------
@@ -278,7 +276,7 @@ int k7::main (int argc, char **argv, char **env) {
 	Context::Scope context_scope(context);
 
 	k7::setup(context->Global(), argc, argv, env);
-	EXEC("system.k7.shell.run('pouet.js');");
+	EXEC("system.k7.shell.command();");
 
 	return 0;
 }

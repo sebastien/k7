@@ -78,9 +78,9 @@ build/%.o: src/%.cpp $(HEADERS) build deps/v8
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
 
 #g++ $(INCLUDES) -fPIC $< -o $@ $(V8_BINARY) $(BUILD_LIBS)
-build/%.o: lib/%.cpp  $(HEADERS) $(MODULES_H) build
+build/%.o: lib/%.cpp  $(HEADERS)
 	@mkdir -p `dirname $@` || true
-	# Using ifeq or sh if did not work... had to resort to this :/
+	@# Using ifeq or sh if did not work... had to resort to this :/
 	@test -e lib/$*.js && mkdir -p `dirname build/include/$*` || true
 	@test -e lib/$*.js && $(JS2H) lib/$*.js > build/include/$*.js.h || true
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -Ibuild/include/$(dir $*) -c $< -o $@

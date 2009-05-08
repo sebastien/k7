@@ -4,4 +4,5 @@
 	- Updated modules to have { } in FUNCTION etc (useful for indentation in some editors)
 	- Modules now need MODULE_NAME and MODULE_STATIC and MODULE does not take any parameters
 	- Preliminary AS_PLUGIN compilation option to enable dynamic module registration
+	- Modules JavaScript are now compiled in the build directory directly
 	

@@ -21,8 +21,8 @@
 
 using namespace v8;
 
-#define MODULE_NAME   "net.http.server.curl"
-#define MODULE_STATIC  net_http_server_curl
+#define MODULE_NAME   "net.http.client.curl"
+#define MODULE_STATIC  net_http_client_curl
 
 // ----------------------------------------------------------------------------
 //
