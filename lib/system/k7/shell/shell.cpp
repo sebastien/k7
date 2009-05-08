@@ -35,6 +35,14 @@ FUNCTION(shell_load)
 {
 	ARG_COUNT(1);
 	ARG_str(file, 0)
+	return k7::load(*file);
+}
+END
+
+FUNCTION(shell_run)
+{
+	ARG_COUNT(1);
+	ARG_str(file, 0)
 	Handle<String> source   = k7::load(*file);
 	Local<String>  previous = OBJECT_GET(JS_GLOBAL,"__file__")->ToString();
 	OBJECT_SET(JS_GLOBAL,"__file__", JS_str(*file));
@@ -46,11 +54,18 @@ FUNCTION(shell_load)
 }
 END
 
+// ----------------------------------------------------------------------------
+//
+// THE MODULE
+//
+// ----------------------------------------------------------------------------
+
 MODULE(system_k7_shell,"system.k7.shell")
 	//BIND("ARGV",    k7_module_load);
 	//BIND("VERSION", k7_module_load);
 	//BIND("Global",  k7_module_has);
 	BIND("print",   shell_print);
+	BIND("run",     shell_run);
 	BIND("load",    shell_load);
 	#include "shell.h"
 	EXEC(SHELL_JS)

@@ -45,9 +45,27 @@ IMPORT(net_http_client_curl);
 #endif
 
 /**
- * Sets up the K7 environment, loading the module system and the shell
+ * Sets up the K7 environment, loading the module system and the shell.
+ *
 */
 void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env) {
+
+	// We create the environment object
+	Handle<Object> js_env = JS_obj();
+	for (int i = 0; env[i]; i ++) {
+		int j;
+		for (j = 0; env[i][j] && env[i][j] != '='; j ++);
+		env[i][j] = '\0';
+		OBJECT_SET(js_env, env[i], JS_str(env[i]+j+1));
+	}
+	Handle<Array> js_argv = Array::New(argc);
+	for (int i = 0; i < argc; i ++) {
+		js_argv->Set(JS_int(i), JS_str(argv[i]));
+	}
+	OBJECT_SET(js_env, "argc", JS_int(argc));
+	OBJECT_SET(js_env, "argv", js_argv);
+	OBJECT_SET(k7::module("system.k7"), "ENV", js_env);
+
 	LOAD("system.k7.modules",      system_k7_modules);
 	LOAD("system.k7.shell",        system_k7_shell);
 	/*
@@ -260,7 +278,7 @@ int k7::main (int argc, char **argv, char **env) {
 	Context::Scope context_scope(context);
 
 	k7::setup(context->Global(), argc, argv, env);
-	EXEC("system.k7.shell.print('Hello, world !\\n');");
+	EXEC("system.k7.shell.run('pouet.js');");
 
 	return 0;
 }
