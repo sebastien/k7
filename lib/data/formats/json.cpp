@@ -13,7 +13,7 @@
 
 MODULE(data_formats_json,"data.formats.json")
 	#include "json.h"
-	EVAL(JSON_JS)
+	EXEC(JSON_JS)
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet

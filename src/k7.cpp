@@ -49,8 +49,8 @@ IMPORT(net_http_client_curl);
 */
 void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env) {
 	LOAD("system.k7.modules",      system_k7_modules);
-	/*
 	LOAD("system.k7.shell",        system_k7_shell);
+	/*
 	LOAD("system.posix",           system_posix);
 	LOAD("system.engine",          system_engine);
 	LOAD("data.formats.json",      data_formats_json);
@@ -105,31 +105,15 @@ void k7::trace (const TryCatch* try_catch) {
 /**
  * Executes the given C string, optionaly coming from the given file.
 */
-bool k7::execute (const char* source) { return k7::execute(source, "(shell)"); }
-bool k7::execute (const char* source, const char* fromFileName) {
-	return k7::execute(JS_str(source), JS_str("fromFileName"));
-}
-
-/**
- * Executes the given String, optionaly coming from the given file.
-*/
-bool k7::execute (Handle<String> source) { return k7::execute(source, JS_str("(shell)")); }
+bool k7::execute (const char* source)                           { return k7::execute(JS_str(source), JS_str("(shell)")); }
+bool k7::execute (const char* source, const char* fromFileName) { return k7::execute(JS_str(source), JS_str("fromFileName")); }
+bool k7::execute (Handle<String> source)                        { return k7::execute(source,         JS_str("(shell)")); }
 bool k7::execute (Handle<String> source, Handle<Value> fromFileName) {
 	if (source->Length() == 0) return true;
 	HandleScope handle_scope;
 	TryCatch try_catch;
 
-	// Skip the first line if it is a  '#!'
 	String::Utf8Value utf8_value(source);
-	/*
-	if (
-		(*utf8_value)[0] == '#' &&
-		(*utf8_value)[1] == '!'
-	) {
-		(*utf8_value)[1] = (*utf8_value)[0] = '/';
-		source = String::New(*utf8_value);
-	}
-	*/
 
 	Handle<Script> script = Script::Compile(source, fromFileName);
 	if (script.IsEmpty()) {
@@ -144,6 +128,33 @@ bool k7::execute (Handle<String> source, Handle<Value> fromFileName) {
 		return false;
 	}
 	return true;
+}
+
+/**
+ * Like execute, but returns an object or undefined if a problem happened
+*/
+Handle<Value> k7::eval (const char* source)                           { return k7::eval(JS_str(source), JS_str("(shell)")); }
+Handle<Value> k7::eval (const char* source, const char* fromFileName) { return k7::eval(JS_str(source), JS_str(fromFileName)); }
+Handle<Value> k7::eval (Handle<String> source)                        { return k7::eval(source,         JS_str("(shell)")); }
+Handle<Value> k7::eval (Handle<String> source, Handle<Value> fromFileName) {
+	if (source->Length() == 0) return JS_undefined;
+	HandleScope handle_scope;
+	TryCatch try_catch; 
+	String::Utf8Value utf8_value(source);
+
+	Handle<Script> script = Script::Compile(source, fromFileName);
+	if (script.IsEmpty()) {
+		// Print errors that happened during compilation.
+		k7::trace(&try_catch);
+		return JS_undefined;
+	}
+	Handle<Value> result = script->Run();
+	if (result.IsEmpty()) {
+		// Print errors that happened during execution.
+		k7::trace(&try_catch);
+		return JS_undefined;
+	}
+	return result;
 }
 
 Handle<Object> k7::module(const char* fullName) {
@@ -209,6 +220,26 @@ Handle<Object> k7::module(Handle<Object>  parent, const char* moduleName, const 
 	}
 }
 
+Handle<String> k7::load(const char* path) {
+	FILE* file = fopen(path, "rb");
+	if (file == NULL) return v8::Handle<v8::String>();
+
+	fseek(file, 0, SEEK_END);
+	int size = ftell(file);
+	rewind(file);
+
+	char* chars = new char[size + 1];
+	chars[size] = '\0';
+	for (int i = 0; i < size;) {
+		int read = fread(&chars[i], 1, size - i, file);
+		i += read;
+	}
+	fclose(file);
+	v8::Handle<v8::String> result = v8::String::New(chars, size);
+	delete[] chars;
+	return result;
+}
+
 /**
  * This is the main function that sets up the K7 environment
 */
@@ -217,16 +248,19 @@ int k7::main (int argc, char **argv, char **env) {
 	HandleScope handle_scope;
 
 	// Create a template for the global object.
-	Handle<ObjectTemplate> global = ObjectTemplate::New();
+	Handle<ObjectTemplate> global_template = ObjectTemplate::New();
 
 	// Create a new execution environment containing the built-in
 	// functions
-	Handle<Context> context = Context::New(NULL, global);
+	Handle<Context> context = Context::New(NULL, global_template);
+	Handle<Object>  global  = context->Global();
+  
 
 	// Enter the newly created execution environment.
 	Context::Scope context_scope(context);
 
 	k7::setup(context->Global(), argc, argv, env);
+	EXEC("system.k7.shell.print('Hello, world !\\n');");
 
 	return 0;
 }

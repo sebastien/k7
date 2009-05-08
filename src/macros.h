@@ -108,6 +108,12 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 	} \
 }
 
+#define OBJECT_SET(o,s,v)   o->Set(JS_str(s), v)
+#define OBJECT_GET(o,s)     o->Get(JS_str(s))
+#define OBJECT_UNSET(o,s)   o->Set(JS_str(s), JS_undefined)
+#define OBJECT_PROTOTYPE(o) o->GetPrototype();
+
+
 #define INTERNAL(i,value) \
 	self->SetInternalField(i, v8::External::New((void*)value));
 
@@ -172,7 +178,7 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 #define LINK_TO(lib)
 #define IMPORT(function)            extern "C" v8::Handle<v8::Object> function(v8::Handle<v8::Object> module);
 #define LOAD(moduleName,function)   function(k7::module(global, moduleName, NULL));
-#define EVAL(source)                k7::execute(source);
+#define EXEC(source)                k7::execute(source);
 
 #endif
 // EOF - vim: ts=4 sw=4 noet

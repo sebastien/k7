@@ -19,15 +19,25 @@ using namespace v8;
 
 namespace k7 {
 
-	void setup (Handle<Object> global,int argc, char** argv, char** env);
-	void trace (const v8::TryCatch* try_catch);
-	bool execute (const char* source);
-	bool execute (const char* source, const char* fromFileName);
-	bool execute (Handle<String> source);
-	bool execute (Handle<String> source, Handle<Value> fromFileName);
-	Handle<Object> module(const char* fullName);
-	Handle<Object> module(Handle<Object>  parent, const char* moduleName, const char* fullName);
-	int main (int argc, char **argv, char **env);
+	void      setup   (Handle<Object> global,int argc, char** argv, char** env);
+	void      trace   (const v8::TryCatch* try_catch);
+
+	bool      execute (const char* source);
+	bool      execute (const char* source, const char* fromFileName);
+	bool      execute (Handle<String> source);
+	bool      execute (Handle<String> source, Handle<Value> fromFileName);
+
+	Handle<Value> eval    (const char* source);
+	Handle<Value> eval    (const char* source, const char* fromFileName);
+	Handle<Value> eval    (Handle<String> source);
+	Handle<Value> eval    (Handle<String> source, Handle<Value> fromFileName);
+
+	Handle<String> load    (const char* path);
+
+	Handle<Object> module  (const char* fullName);
+	Handle<Object> module  (Handle<Object>  parent, const char* moduleName, const char* fullName);
+
+	int       main    (int argc, char **argv, char **env);
 
 }
 
