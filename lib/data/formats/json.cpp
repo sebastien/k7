@@ -16,7 +16,7 @@
 
 MODULE
 {
-	#include "json.h"
+	#include "json.js.h"
 	EXEC(JSON_JS)
 }
 END_MODULE

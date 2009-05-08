@@ -11,7 +11,6 @@
 
 #include <stdlib.h>
 #include <time.h>
-#include "modules.h"
 
 #define MODULE_NAME   "system.k7.modules"
 #define MODULE_STATIC  system_k7_modules
@@ -54,7 +53,7 @@ END
 
 MODULE
 {
-	#include "modules.h"
+	#include "modules.js.h"
 	BIND("has",     module_has);
 	BIND("load",    module_load);
 	BIND("ensure",  module_ensure);

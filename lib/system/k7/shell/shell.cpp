@@ -71,7 +71,7 @@ MODULE
 	BIND("print",   shell_print);
 	BIND("run",     shell_run);
 	BIND("load",    shell_load);
-	#include "shell.h"
+	#include "shell.js.h"
 	EXEC(SHELL_JS)
 }
 END_MODULE
