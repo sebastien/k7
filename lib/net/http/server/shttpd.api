@@ -1,0 +1,28 @@
+@module net.http.server.shttpd
+
+@shared VERSION
+@shared END_OF_OUTPUT
+@shared CONNECTION_ERROR
+@shared MORE_POST_DATA
+@shared POST_BUFFER_FULL 
+@shared SSI_EVAL_TRUE
+@shared SUSPENT
+
+@class Request
+	@abstract @method getEnv
+	@abstract @method getVar
+	@abstract @method getHeader
+	@abstract @method setFlags
+@end
+
+@class Server
+
+	@constructor port
+	@end
+
+	@abstract @method setOption
+	@abstract @method processRequests
+	@abstract @method registerURI
+	@abstract @method handleError
+
+@end
