@@ -13,8 +13,8 @@
 #include <time.h>
 #include <string.h>
 
-// TODO: Add proper error handling
-// #define MODULE "system.posix"
+#define MODULE_NAME   system.posix
+#define MODULE_STATIC system_posix
 
 OBJECT(posix_FILE,1,FILE* file)
 {
@@ -120,6 +120,7 @@ END
 FUNCTION(posix_readfile)
 {
 	STUB
+}
 END
 
 FUNCTION(posix_writefile)
@@ -192,7 +193,7 @@ FUNCTION(posix_pthread_create)
 }
 END
 
-MODULE(system_posix,"system.posix")
+MODULE
 {
 	// FIXME: When I set the module 'time' slot to a string, accessing the slot
 	// from JavaScript works, but when I BIND it to the posix_time function, the

@@ -5,7 +5,7 @@
 //                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
 // -----------------------------------------------------------------------------
 // Creation date     : 29-Sep-2008
-// Last modification : 13-Dec-2008
+// Last modification : 08-May-2009
 // -----------------------------------------------------------------------------
 
 #include <k7.h>
@@ -24,45 +24,8 @@
 LINK_TO(libshttpd.a)
 
 #define SHTTPD_POLL_DELAY 10
-
-// ----------------------------------------------------------------------------
-//
-// API
-//
-// ----------------------------------------------------------------------------
-
-/*
-START_API
-@module net.http.server.shttpd
-
-@shared VERSION
-@shared END_OF_OUTPUT
-@shared CONNECTION_ERROR
-@shared MORE_POST_DATA
-@shared POST_BUFFER_FULL 
-@shared SSI_EVAL_TRUE
-@shared SUSPENT
-
-@class Request
-	@abstract @method getEnv
-	@abstract @method getVar
-	@abstract @method getHeader
-	@abstract @method setFlags
-@end
-
-@class Server
-
-	@constructor port
-	@end
-
-	@abstract @method setOption
-	@abstract @method processRequests
-	@abstract @method registerURI
-	@abstract @method handleError
-
-@end
-END_API
-*/
+#define MODULE_NAME   "net.http.server.shttpd"
+#define MODULE_STATIC  net_http_server_shttpd
 
 // ----------------------------------------------------------------------------
 //
@@ -97,22 +60,27 @@ static inline v8::Handle<v8::Object> shttpd_namespace() {
 // ----------------------------------------------------------------------------
 
 FUNCTION(Request_print)
+{
 	ARG_COUNT(1);
 	ARG_utf8(str,0);
 	ARG_shttpd_arg(arg);
 	shttpd_printf(arg, "%s", *str);
 	return args.This();
+}
 END
 
 FUNCTION(Request_setFlags)
+{
 	ARG_COUNT(1);
 	ARG_int(flags,0);
 	ARG_shttpd_arg(arg);
 	arg->flags = flags;
 	return args.This();
+}
 END
 
 FUNCTION(Request_getEnv)
+{
 	ARG_COUNT(1);
 	ARG_utf8(name,0);
 	ARG_shttpd_arg(arg);
@@ -120,9 +88,11 @@ FUNCTION(Request_getEnv)
 	if (result == NULL)
 	    return JS_null;
 	return JS_str(result);
+}
 END
 
 FUNCTION(Request_getVar)
+{
 	ARG_BETWEEN(1,2);
 	ARG_utf8(name,0);
 	ARG_shttpd_arg(arg);
@@ -132,14 +102,17 @@ FUNCTION(Request_getVar)
 	v8::Handle<v8::String> ret = v8::String::New(buf);
 	delete [] buf;
 	return ret;
+}
 END
 
 FUNCTION(Request_getHeader)
+{
 	ARG_COUNT(1)
 	ARG_utf8(name,0);
 	ARG_shttpd_arg(arg);
     const char *result = shttpd_get_header(arg, *name);
 	return result ? JS_str(result) : JS_null;
+}
 END
 
 // ----------------------------------------------------------------------------
@@ -149,6 +122,7 @@ END
 // ----------------------------------------------------------------------------
 
 FUNCTION(Server_constructor)
+{
 	ARG_COUNT(1);
 	ARG_utf8(port,0);
 		char * argv[6];
@@ -162,22 +136,27 @@ FUNCTION(Server_constructor)
 		assert(ctx);
 		THIS->SetInternalField(0, v8::External::New((void*)ctx));
 	return THIS;
+}
 END
 
 FUNCTION(Server_close)
+{
 	ARG_COUNT(0)
 	ARG_shttpd_ctx(ctx)
 		shttpd_fini(ctx);
 	return THIS;
+}
 END
 
 FUNCTION(Server_setOption)
+{
 	ARG_COUNT(2)
 	ARG_shttpd_ctx(ctx)
 	ARG_utf8(key,0);
 	ARG_utf8(val,1);
 		shttpd_set_option(ctx, *key, *val);
 	return THIS;
+}
 END
 
 void Server__onRequest(struct shttpd_arg *_arg) {
@@ -205,6 +184,7 @@ void Server__onRequest(struct shttpd_arg *_arg) {
 }
 
 FUNCTION(Server_registerURI)
+{
 	ARG_COUNT(2);
 	ARG_shttpd_ctx(ctx);
 	ARG_utf8(uri,0);
@@ -222,9 +202,11 @@ FUNCTION(Server_registerURI)
 		);
 		shttpd_register_uri(ctx, *uri, Server__onRequest, hashkey);
 	return THIS;
+}
 END
 
 FUNCTION(Server_handleError)
+{
 	ARG_COUNT(2)
 	ARG_shttpd_ctx(ctx);
 	ARG_int(status,0);
@@ -239,15 +221,18 @@ FUNCTION(Server_handleError)
 			->Set(JS_str(hashkey), args[1]);
 		shttpd_handle_error(ctx, status, Server__onRequest, hashkey);
 	return THIS;
+}
 END
 
 FUNCTION(Server_processRequests)
+{
 	ARG_BETWEEN(0,1);
 	int delay=SHTTPD_POLL_DELAY;
 	if (ARGC==1) { ARG_int(d,0) ; delay = d; }
 	ARG_shttpd_ctx(ctx);
 	shttpd_poll(ctx, delay);
 	return THIS;
+}
 END
 
 // ----------------------------------------------------------------------------
@@ -256,7 +241,8 @@ END
 //
 // ----------------------------------------------------------------------------
 
-MODULE(net_http_server_shttpd,"net.http.server.shttpd")
+MODULE
+{
 
 	SET("VERSION",          JS_str(shttpd_version()));
 	SET("END_OF_OUTPUT",    JS_int(SHTTPD_END_OF_OUTPUT)) 
@@ -310,6 +296,7 @@ MODULE(net_http_server_shttpd,"net.http.server.shttpd")
 		v8::Object::New()
 	);
 
+}
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet

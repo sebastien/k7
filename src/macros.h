@@ -143,10 +143,17 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 //
 // ----------------------------------------------------------------------------
 
-#define MODULE(symbol,moduleName)\
-	extern "C" v8::Handle<v8::Object> symbol (v8::Handle<v8::Object>__module__) {\
+#define MODULE\
+	extern "C" v8::Handle<v8::Object> MODULE_STATIC (v8::Handle<v8::Object> __module__) {\
 		v8::Handle<v8::Object> self = __module__;
-#define END_MODULE                  return __module__; }
+#ifdef AS_PLUGIN
+	#define END_MODULE \
+	return __module__; } \
+	extern "C" void k7_module_init () {printf("Loading %s\n", MODULE_NAME)}
+#else
+	#define END_MODULE \
+	return __module__; }
+#endif
 
 // ----------------------------------------------------------------------------
 //
@@ -179,6 +186,7 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 #define IMPORT(function)            extern "C" v8::Handle<v8::Object> function(v8::Handle<v8::Object> module);
 #define LOAD(moduleName,function)   function(k7::module(global, moduleName, NULL));
 #define EXEC(source)                k7::execute(source);
+#define EVAL(source)                k7::eval(source);
 
 #endif
 // EOF - vim: ts=4 sw=4 noet

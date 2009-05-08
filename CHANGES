@@ -1,2 +1,7 @@
-2009-05-8:
+2009-05-08:
 	- Moved functionality from k7/main.cpp to the system.k7.shell module
+	- k7 namespace now have clear primitives (setup, eval, exec, load, module)
+	- Updated modules to have { } in FUNCTION etc (useful for indentation in some editors)
+	- Modules now need MODULE_NAME and MODULE_STATIC and MODULE does not take any parameters
+	- Preliminary AS_PLUGIN compilation option to enable dynamic module registration
+	

@@ -11,9 +11,14 @@
 #include <time.h>
 #include "macros.h"
 
-MODULE(data_formats_json,"data.formats.json")
+#define MODULE_NAME   "data.formats.json"
+#define MODULE_STATIC  data_formats_json
+
+MODULE
+{
 	#include "json.h"
 	EXEC(JSON_JS)
+}
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet

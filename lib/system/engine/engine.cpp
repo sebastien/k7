@@ -7,12 +7,14 @@
  * useful reference implementation. — isaacs
  **/
 
-#include "macros.h"
+#include <k7.h>
+
 #include <stdlib.h>
 #include <time.h>
 #include <string>
 
-using namespace v8;
+#define MODULE_NAME   "system.engine"
+#define MODULE_STATIC  system_engine
 
 // @TODO: Move this to system.engine
 static Handle<Value> EvalCX (const Arguments& args)
@@ -113,9 +115,8 @@ FUNCTION(freezeObject)
 	STUB
 }
 END
-	
 
-MODULE(system_engine, "system.engine")
+MODULE
 {
 	BIND("getState", getState);
 	BIND("setState", setState);

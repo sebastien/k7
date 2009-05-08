@@ -13,12 +13,17 @@
 #include <time.h>
 #include "modules.h"
 
+#define MODULE_NAME   "system.k7.modules"
+#define MODULE_STATIC  system_k7_modules
+
 FUNCTION(module_has)
 /**
  * Tells if the module with the given name exists in the current sugar
  * installation.
 */
+{
 	ARG_COUNT(0)
+}
 END
 
 FUNCTION(module_load)
@@ -47,7 +52,8 @@ FUNCTION(module_update)
 }
 END
 
-MODULE(system_k7_modules,"system.k7.modules")
+MODULE
+{
 	#include "modules.h"
 	BIND("has",     module_has);
 	BIND("load",    module_load);
@@ -57,6 +63,7 @@ MODULE(system_k7_modules,"system.k7.modules")
 	// update
 	// create
 	// ensure
+}
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet

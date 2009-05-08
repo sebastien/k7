@@ -9,6 +9,9 @@
 
 #include "k7.h"
 
+#define MODULE_NAME   "system.k7.shell"
+#define MODULE_STATIC  system_k7_shell
+
 // ----------------------------------------------------------------------------
 //
 // BASIC SHELL FUNCTIONS
@@ -60,7 +63,8 @@ END
 //
 // ----------------------------------------------------------------------------
 
-MODULE(system_k7_shell,"system.k7.shell")
+MODULE
+{
 	//BIND("ARGV",    k7_module_load);
 	//BIND("VERSION", k7_module_load);
 	//BIND("Global",  k7_module_has);
@@ -69,6 +73,7 @@ MODULE(system_k7_shell,"system.k7.shell")
 	BIND("load",    shell_load);
 	#include "shell.h"
 	EXEC(SHELL_JS)
+}
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet

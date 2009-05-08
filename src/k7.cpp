@@ -20,7 +20,7 @@
 // NOTE: You may be surprised that this file does not contain much code. As
 // K7 aims at implementing as much as possible in JavaScript, most of the
 // K7 code is implemented in its modules, which can be foud in the 'lib'
-// directory. The core K7 code is merely a set of macros and a simple
+// directory. The core K7 code is merely a set of simple functions and a
 // bootstrapping logic to setup the module system and the shell environment.
 
 // ----------------------------------------------------------------------------
