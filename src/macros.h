@@ -4,7 +4,7 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 09-Apr-2009
+// Last modification : 08-May-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_MACROS__
@@ -64,8 +64,6 @@ using namespace v8;
 #define ARG_fn(name, c) \
 		Handle<Function> name = Handle<Function>::Cast(args[(c)])
 
-
-
 // ----------------------------------------------------------------------------
 //
 // FUNCTIONS MACROS
@@ -91,12 +89,22 @@ using namespace v8;
  * See the 'posix.cpp' module for examples. */
 
 #define OBJECT(name,fields,...) \
-	v8::Handle<Object> name(__VA_ARGS__) { \
-		v8::HandleScope handle_scope;\
-		v8::Handle<v8::FunctionTemplate>   __class__  = v8::FunctionTemplate::New();\
-		v8::Handle<v8::ObjectTemplate>     __object__ = __class__->InstanceTemplate();\
-		__object__->SetInternalFieldCount(fields);\
-		v8::Handle<v8::Object>               self = __object__->NewInstance();
+v8::Handle<Object> name(__VA_ARGS__) { \
+	v8::HandleScope handle_scope;\
+	v8::Handle<v8::FunctionTemplate>   __class__  = v8::FunctionTemplate::New();\
+	v8::Handle<v8::ObjectTemplate>     __object__ = __class__->InstanceTemplate();\
+	__object__->SetInternalFieldCount(fields);\
+	v8::Handle<v8::Object>               self = __object__->NewInstance();
+
+#define OBJECT_COPY_SLOTS(from,to) \
+{ \
+	Handle<Array> keys = from->GetPropertyNames(); \
+	for (int i = 0; i < keys->Length(); i ++) { \
+		Handle<String> key = keys->Get(JS_int(i))->ToString(); \
+		Handle<Value> val = from->Get(key); \
+		to->Set(key, val); \
+	} \
+}
 
 #define INTERNAL(i,value) \
 	self->SetInternalField(i, v8::External::New((void*)value));

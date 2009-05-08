@@ -14,7 +14,6 @@
 
 // TODO: Add proper error handling
 // #define MODULE "system.posix"
-using namespace v8;
 
 OBJECT(posix_FILE,1,FILE* file)
 	INTERNAL(0,file)
