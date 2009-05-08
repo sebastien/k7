@@ -5,17 +5,23 @@
 // Author            : Isaac Schulter.                           <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 31-Mar-2009
+// Last modification : 08-May-2009
 // ----------------------------------------------------------------------------
 
 #include <v8.h>
 #include <k7.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <string>
 #include <time.h>
 
-using namespace v8;
+// NOTE: You may be surprised that this file does not contain much code. As
+// K7 aims at implementing as much as possible in JavaScript, most of the
+// K7 code is implemented in its modules, which can be foud in the 'lib'
+// directory. The core K7 code is merely a set of macros and a simple
+// bootstrapping logic to setup the module system and the shell environment.
 
 // ----------------------------------------------------------------------------
 //
@@ -23,43 +29,35 @@ using namespace v8;
 //
 // ----------------------------------------------------------------------------
 
-// import libs from the "libs" folder.
+// Imports the symbols from standard libraries that can be found in the
+// "lib" directory of the source tree
+IMPORT(system_k7_modules);
+IMPORT(system_k7_shell);
 IMPORT(system_posix);
 IMPORT(system_engine);
-IMPORT(system_k7_shell);
-IMPORT(system_k7_modules);
 IMPORT(data_formats_json);
 IMPORT(net_http_server_shttpd);
 #ifdef WITH_FCGI
-	IMPORT(net_http_server_fcgi);
+IMPORT(net_http_server_fcgi);
 #endif
 #ifdef WITH_CURL
-	IMPORT(net_http_client_curl);
+IMPORT(net_http_client_curl);
 #endif
 
-// define the "SetupEnvironment" function
+// This does the actual loading of modules
 ENVIRONMENT
 {
-	/*
-	JSOBJ_set(global,"ENV",JSEnv(argc, argv, env));
-	JSOBJ_set(global,"print", JS_fn(Print));
-	JSOBJ_set(global,"include", JS_fn(Load));
-	JSOBJ_set(global,"evalcx", JS_fn(EvalCX));
-	*/
-	
-	#include "core.h"
-	EVAL(CORE_JS)
-
-	LOAD("system.posix", system_posix);
-	LOAD("system.engine", system_engine);
-	LOAD("system.k7.modules", system_k7_modules);
-	LOAD("data.formats.json", data_formats_json);
-	LOAD("net.http.server.shttpd",net_http_server_shttpd);
+	LOAD("system.k7.modules",      system_k7_modules);
+	LOAD("system.k7.shell",        system_k7_shell);
+	LOAD("system.posix",           system_posix);
+	LOAD("system.engine",          system_engine);
+	LOAD("data.formats.json",      data_formats_json);
+	LOAD("net.http.server.shttpd", net_http_server_shttpd);
 #ifdef WITH_FCGI
-	LOAD("net.http.server.fcgi", net_http_server_fcgi);
+	LOAD("net.http.server.fcgi",   net_http_server_fcgi);
 #endif
 #ifdef WITH_CURL
-	LOAD("net.http.client.curl", net_http_client_curl);
+	LOAD("net.http.client.curl",   net_http_client_curl);
 #endif
 }
 END
@@ -69,6 +67,68 @@ END
 // MAIN SHELL FUNCTIONS
 //
 // ----------------------------------------------------------------------------
+
+void k7_reportException (const TryCatch* try_catch) {
+	HandleScope handle_scope;
+	String::Utf8Value exception(try_catch->Exception());
+	Handle<Message> message = try_catch->Message();
+	if (message.IsEmpty()) {
+		// V8 didn't provide any extra information about this error; just
+		// print the exception.
+		fprintf(stderr, "%s\n", *exception);
+	} else {
+		// Print (filename):(line number): (message).
+		String::Utf8Value filename(message->GetScriptResourceName());
+		int linenum = message->GetLineNumber();
+		fprintf(stderr, "%s:%i: %s\n", *filename, linenum, *exception);
+		// Print line of source code.
+		String::Utf8Value sourceline(message->GetSourceLine());
+		fprintf(stderr, "%s\n", *sourceline);
+		// Print wavy underline (GetUnderline is deprecated).
+		int start = message->GetStartColumn();
+		for (int i = 0; i < start; i++) {
+			fprintf(stderr, " ");
+		}
+		int end = message->GetEndColumn();
+		for (int i = start; i < end; i++) {
+			fprintf(stderr, "^");
+		}
+		fprintf(stderr, "\n");
+	}
+}
+
+// Executes a string within the current v8 context.
+bool k7_evalString (Handle<String> source, Handle<Value> fromFileName) {
+	
+	if (source->Length() == 0) return true;
+	
+	HandleScope handle_scope;
+	TryCatch try_catch;
+	
+	// comment the #! line if one exists.
+	String::Utf8Value utf8_value(source);
+	if (
+		(*utf8_value)[0] == '#' &&
+		(*utf8_value)[1] == '!'
+	) {
+		(*utf8_value)[1] = (*utf8_value)[0] = '/';
+		source = String::New(*utf8_value);
+	}
+	
+	Handle<Script> script = Script::Compile(source, fromFileName);
+	if (script.IsEmpty()) {
+		// Print errors that happened during compilation.
+		k7_reportException(&try_catch);
+		return false;
+	}
+	Handle<Value> result = script->Run();
+	if (result.IsEmpty()) {
+		// Print errors that happened during execution.
+		k7_reportException(&try_catch);
+		return false;
+	}
+	return true;
+}
 
 int k7_main (int argc, char **argv, char **env) {
 

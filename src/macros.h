@@ -168,10 +168,10 @@ v8::Handle<Object> name(__VA_ARGS__) { \
  * These macros allow to declare a module initialization function and register
  * FUNCTIONs in this module. */
 #define LINK_TO(lib)
-#define ENVIRONMENT                 void SetupEnvironment (v8::Handle<v8::Object> global,int argc, char** argv, char** env) {
+#define ENVIRONMENT                 void k7_setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env) {
 #define IMPORT(function)            extern "C" v8::Handle<v8::Object> function(v8::Handle<v8::Object> module);
-#define LOAD(moduleName,function)   function(EnsureModule(global,moduleName));
-#define EVAL(source)                ExecuteString(JS_str(source), JS_undefined, false);
+#define LOAD(moduleName,function)   function(k7_ensureModule(global,moduleName));
+#define EVAL(source)                k7_evalString(JS_str(source));
 
 #endif
 // EOF - vim: ts=4 sw=4 noet

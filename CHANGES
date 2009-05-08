@@ -1,0 +1,2 @@
+2009-05-8:
+	- Moved functionality from k7/main.cpp to the system.k7.shell module

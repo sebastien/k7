@@ -42,6 +42,9 @@ MODULE(system_k7_modules,"system.k7.modules")
 	BIND("has",     k7_module_resolve);
 	BIND("resolve", k7_module_has);
 	BIND("load",    k7_module_load);
+	// update
+	// create
+	// ensure
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet
