@@ -4,10 +4,11 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 19-Mar-2009
+// Last modification : 08-May-2009
 // ----------------------------------------------------------------------------
 
-#include "macros.h"
+#include "k7.h"
+
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
@@ -16,16 +17,21 @@
 // #define MODULE "system.posix"
 
 OBJECT(posix_FILE,1,FILE* file)
+{
 	INTERNAL(0,file)
 	return self;
+}
 END
 
 FUNCTION(posix_time)
+{
 	ARG_COUNT(0)
 	return JS_int(time(NULL));
+}
 END
 
 FUNCTION(posix_fopen)
+{
 	ARG_COUNT(2)
 	ARG_utf8(path,0);
 	ARG_utf8(mode,1);
@@ -33,16 +39,20 @@ FUNCTION(posix_fopen)
 	if (fd == NULL)
 		return JS_null;
 	return posix_FILE(fd);
+}
 END
 
 FUNCTION(posix_fclose)
+{
 	ARG_COUNT(1);
 	ARG_obj(fileObj,0);
 	EXTERNAL(FILE*,file,fileObj,0);
 	return JS_int(fclose(file));
+}
 END
 
 FUNCTION(posix_popen)
+{
 	ARG_COUNT(2)
 	ARG_utf8(path,0);
 	ARG_utf8(type,1);
@@ -50,31 +60,39 @@ FUNCTION(posix_popen)
 	if (fd == NULL)
 		return JS_null;
 	return posix_FILE(fd);
+}
 END
 
 FUNCTION(posix_pclose)
+{
 	ARG_COUNT(1);
 	ARG_obj(fileObj,0);
 	EXTERNAL(FILE*,file,fileObj,0);
 	return JS_int(pclose(file));
+}
 END
 
 FUNCTION(posix_system)
+{
 	ARG_COUNT(1);
 	ARG_utf8(command,0);
 	return JS_int(system(*command));
+}
 END
 
 FUNCTION(posix_fwrite)
+{
 	ARG_utf8(data,0);
 	ARG_int(size,1);
 	ARG_int(nmemb,2);
 	ARG_obj(fileObj,3);
 	EXTERNAL(FILE*,file,fileObj,0);
 	return JS_int(fwrite(*data,size,nmemb,file));
+}
 END
 
 FUNCTION(posix_fread)
+{
 	ARG_COUNT(3);
 	ARG_int(size,0);
 	ARG_int(nmemb,1);
@@ -88,6 +106,7 @@ FUNCTION(posix_fread)
 	v8::Handle<v8::String> strbuf = JS_str2(buf, read);
 	delete [] buf;
 	return strbuf;
+}
 END
 
 FUNCTION(posix_feof)
@@ -99,6 +118,7 @@ FUNCTION(posix_feof)
 END
 	
 FUNCTION(posix_readfile)
+{
 	STUB
 END
 
@@ -128,8 +148,10 @@ END
 // https://computing.llnl.gov/tutorials/pthreads/
 
 OBJECT(posix_PTHREAD,1,pthread_t* thread)
+{
 	INTERNAL(0,thread)
 	return self;
+}
 END
 
 // NOTE: This is WIP code that will be moved to a "task" module using libtask API
@@ -150,6 +172,7 @@ void* posix_pthread_create_callback(void* context) {
 }
 
 FUNCTION(posix_pthread_create)
+{
 	ARG_COUNT(2);
 	//Handle<Function> callback = Handle<Function>::Cast(args[(0)]);
 	ARG_fn(callback,0);
@@ -166,9 +189,11 @@ FUNCTION(posix_pthread_create)
 	//pthread_create(thread, NULL, posix_pthread_create_callback, (void*)*result);
 	posix_pthread_create_callback((void*)*result);
 	return result;
+}
 END
 
 MODULE(system_posix,"system.posix")
+{
 	// FIXME: When I set the module 'time' slot to a string, accessing the slot
 	// from JavaScript works, but when I BIND it to the posix_time function, the
 	// JavaScript returns undefined. Even worse, the next BIND has no effect.
@@ -185,6 +210,7 @@ MODULE(system_posix,"system.posix")
 	BIND("pclose",    posix_pclose);
 	BIND("system",    posix_system);
 	BIND("pthread_create",  posix_pthread_create);
+}
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet
