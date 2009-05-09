@@ -15,15 +15,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-// TODO: Add proper error handling
-// #define MODULE "system.posix"
 using namespace v8;
 
 int obj2addr (Handle<Object> obj, struct sockaddr_in* addr) {
     HandleScope scope;
-    String::AsciiValue a ( obj->Get(String::New("addr")) );
-    Handle<Value> p = obj->Get(String::New("port"));
+    String::AsciiValue a (obj->Get(JS_str("addr")));
+    Handle<Value> p = obj->Get(JS_str("port"));
     memset(addr,0,sizeof(struct sockaddr_in));
     if (1!=inet_pton(AF_INET,*a,&(addr->sin_addr.s_addr)))
         return -1;
@@ -37,17 +34,17 @@ int obj2addr (Handle<Object> obj, struct sockaddr_in* addr) {
 Handle<Object> addr2obj (struct sockaddr_in* addr) {
     HandleScope scope;
     Handle<Object> obj(Object::New());
-    obj->Set(String::New("port"),Integer::New(ntohs(addr->sin_port)));
+    obj->Set(JS_str("port"),JS_int(ntohs(addr->sin_port)));
     char str[32];
     inet_ntop(AF_INET,&(addr->sin_addr),str,sizeof(sockaddr_in));
-    obj->Set(String::New("addr"),String::New(str));
+    obj->Set(JS_str("addr"),String::New(str));
     return scope.Close(obj);
 }
 
 FUNCTION(posix_socket_tcp)
     ARG_COUNT(0);
     int sock = socket(AF_INET,SOCK_STREAM,0);
-    return Integer::New(sock);
+    return JS_int(sock);
 END
 
 FUNCTION(posix_bind)
@@ -79,7 +76,7 @@ FUNCTION(posix_accept)
     if (-1==newsock)
         THROW(strerror(errno));
     Handle<Object> addrobj = addr2obj(&addr);
-    addrobj->Set(String::New("sock"),Integer::New(newsock));
+    addrobj->Set(JS_str("sock"),JS_int(newsock));
     return addrobj;
 END
 
@@ -95,12 +92,20 @@ FUNCTION(posix_connect)
     return Undefined();
 END
 
+FUNCTION(posix_net_close)
+    ARG_COUNT(1);
+    ARG_int(sock,0);
+    close(sock);
+    return Undefined();
+END
+
 MODULE(net_posix,"net.posix")
     BIND("socket_tcp",posix_socket_tcp);
     BIND("bind",posix_bind);
     BIND("listen",posix_listen);
     BIND("accept",posix_accept);
     BIND("connect",posix_connect);
+    BIND("close",posix_net_close);
     //SET_int("O_TRUNC",O_TRUNC);
 END_MODULE
 

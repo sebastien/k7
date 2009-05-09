@@ -172,5 +172,9 @@ using namespace v8;
 #define LOAD(moduleName,function)   function(EnsureModule(global,moduleName));
 #define EVAL(source)                ExecuteString(JS_str(source), JS_undefined, false);
 
+
+// environment utility functions
+void ReportException(const TryCatch *);
+
 #endif
 // EOF - vim: ts=4 sw=4 noet

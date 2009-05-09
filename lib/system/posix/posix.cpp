@@ -210,6 +210,9 @@ MODULE(system_posix,"system.posix")
     BIND("open",posix_open);
     BIND("close",posix_close);
     SET_int("O_RDWR",O_RDWR);
+    SET_int("O_RDONLY",O_RDONLY);
+    SET_int("O_WRONLY",O_WRONLY);
+    SET_int("O_NONBLOCK",O_NONBLOCK);
     SET_int("O_CREAT",O_CREAT);
     SET_int("O_TRUNC",O_TRUNC);
 END_MODULE
