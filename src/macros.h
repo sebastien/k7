@@ -30,13 +30,12 @@ using namespace v8;
 #define JS_int(s)                      v8::Integer::New(s)
 #define JS_undefined                   v8::Undefined()
 #define JS_null                        v8::Null()
-#define JSOBJ_set(target,slot,value)   target->Set(JS_str(slot),value)
 #define JS_fn(f)                       v8::FunctionTemplate::New(f)->GetFunction()
-#define V8_FT(f)                       v8::FunctionTemplate::New(f)
 #define JS_obj(o)                      v8::Object::New(o)
 #define JS_bool(b)                     v8::Boolean::New(b)
-#define JS_throw(t, s)                 ThrowException(Exception::t(String::New(s)))
-#define JS_error(s)                    ThrowException(Exception::Error(String::New(s)))
+
+#define THROW(t, s)                   ThrowException(Exception::t(String::New(s)))
+#define ERROR(s)                      ThrowException(Exception::Error(String::New(s)))
 
 // ----------------------------------------------------------------------------
 //
