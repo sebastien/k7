@@ -46,13 +46,16 @@ FUNCTION(shell_run)
 {
 	ARG_COUNT(1);
 	ARG_str(file, 0)
-	Handle<String> source   = k7::load(*file);
-	Local<String>  previous = OBJECT_GET(JS_GLOBAL,"__file__")->ToString();
-	OBJECT_SET(JS_GLOBAL,"__file__", JS_str(*file));
-	// FIXME: Use eval instead
-	// Handle<Object> result = k7::eval(source);
-	k7::execute(source);
-	OBJECT_SET(JS_GLOBAL,"__file__", previous);
+	Handle<Value> source    = k7::load(*file);
+	if (source->IsString()) {
+		Local<String> previous = OBJECT_GET(JS_GLOBAL,"__file__")->ToString();
+		OBJECT_SET(JS_GLOBAL,"__file__", JS_str(*file));
+		Handle<Value> result = k7::eval(source->ToString());
+		OBJECT_SET(JS_GLOBAL,"__file__", previous);
+		return result;
+	} else {
+		ERROR("shell.run: File not found");
+	}
 	return JS_undefined;
 }
 END

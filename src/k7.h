@@ -32,7 +32,7 @@ namespace k7 {
 	Handle<Value>  eval    (Handle<String> source);
 	Handle<Value>  eval    (Handle<String> source, Handle<Value> fromFileName);
 
-	Handle<String> load    (const char* path);
+	Handle<Value>  load    (const char* path);
 
 	Handle<Object> module  (const char* fullName);
 	Handle<Object> module  (Handle<Object>  parent, const char* moduleName, const char* fullName);

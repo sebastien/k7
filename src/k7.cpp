@@ -236,9 +236,11 @@ Handle<Object> k7::module(Handle<Object>  parent, const char* moduleName, const 
 	}
 }
 
-Handle<String> k7::load(const char* path) {
+Handle<Value> k7::load(const char* path) {
 	FILE* file = fopen(path, "rb");
-	if (file == NULL) return v8::Handle<v8::String>();
+	if (file == NULL) {
+		return JS_null;
+	}
 
 	fseek(file, 0, SEEK_END);
 	int size = ftell(file);
