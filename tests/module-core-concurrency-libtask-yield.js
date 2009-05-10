@@ -1,5 +1,6 @@
 /**
-Demonstrates the use of the 'libtask.yield' function
+Demonstrates the use of the 'libtask.yield' function. Note that if there is an
+exception with libtask, K7 will segfault.
 --
 Task 1:0
 Task 2:0
@@ -25,6 +26,7 @@ Task 2:9
 */
 
 var libtask = core.concurrency.libtask
+var print   = system.k7.shell.print;
 
 function task_1 () {
 	for (var i=0;i<10;i++) {
@@ -42,6 +44,14 @@ function task_2 () {
 
 function main () {
 	libtask.create(task_1,[])
+	libtask.create(task_2,[])
+	libtask.create(task_2,[])
+	libtask.create(task_2,[])
+	libtask.create(task_2,[])
+	libtask.create(task_2,[])
+	libtask.create(task_2,[])
+	libtask.create(task_2,[])
+	libtask.create(task_2,[])
 	libtask.create(task_2,[])
 }
 
