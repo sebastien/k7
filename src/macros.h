@@ -4,7 +4,7 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 08-May-2009
+// Last modification : 09-May-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_MACROS__

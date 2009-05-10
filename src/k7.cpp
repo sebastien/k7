@@ -5,7 +5,7 @@
 // Author            : Isaac Schulter                            <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 08-May-2009
+// Last modification : 09-May-2009
 // ----------------------------------------------------------------------------
 
 #include <v8.h>
@@ -64,7 +64,8 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 	}
 	OBJECT_SET(js_env, "argc", JS_int(argc));
 	OBJECT_SET(js_env, "argv", js_argv);
-	OBJECT_SET(k7::module("system.k7"), "ENV", js_env);
+	OBJECT_SET(k7::module("system.k7"), "ENV",    js_env);
+	OBJECT_SET(k7::module("system.k7"), "GLOBAL", JS_GLOBAL);
 
 	LOAD("system.k7.modules",      system_k7_modules);
 	LOAD("system.k7.shell",        system_k7_shell);
@@ -236,7 +237,7 @@ Handle<Object> k7::module(Handle<Object>  parent, const char* moduleName, const 
 	}
 }
 
-Handle<Value> k7::load(const char* path) {
+Handle<Value> k7::read(const char* path) {
 	FILE* file = fopen(path, "rb");
 	if (file == NULL) {
 		return JS_null;
