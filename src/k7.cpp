@@ -5,7 +5,7 @@
 // Author            : Isaac Schulter                            <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 09-May-2009
+// Last modification : 10-May-2009
 // ----------------------------------------------------------------------------
 
 #include <v8.h>
@@ -43,6 +43,9 @@ IMPORT(net_http_server_fcgi);
 #ifdef WITH_CURL
 IMPORT(net_http_client_curl);
 #endif
+#ifdef WITH_LIBTASK
+IMPORT(core_concurrency_libtask);
+#endif
 
 /**
  * Sets up the K7 environment, loading the module system and the shell.
@@ -52,11 +55,13 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 
 	// We create the environment object
 	Handle<Object> js_env = JS_obj();
-	for (int i = 0; env[i]; i ++) {
-		int j;
-		for (j = 0; env[i][j] && env[i][j] != '='; j ++);
-		env[i][j] = '\0';
-		OBJECT_SET(js_env, env[i], JS_str(env[i]+j+1));
+	if (env != NULL) {
+		for (int i = 0; env[i]; i ++) {
+			int j;
+			for (j = 0; env[i][j] && env[i][j] != '='; j ++);
+			env[i][j] = '\0';
+			OBJECT_SET(js_env, env[i], JS_str(env[i]+j+1));
+		}
 	}
 	Handle<Array> js_argv = Array::New(argc);
 	for (int i = 0; i < argc; i ++) {
@@ -78,6 +83,9 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 #endif
 #ifdef WITH_CURL
 	LOAD("net.http.client.curl",   net_http_client_curl);
+#endif
+#ifdef WITH_LIBTASK
+	LOAD("core.concurrency.libtask",   core_concurrency_libtask);
 #endif
 }
 
@@ -291,8 +299,16 @@ int k7::main (int argc, char **argv, char **env) {
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_LIBRARY_ONLY__
-int main (int argc, char **argv, char **env) {
-	return k7::main(argc, argv, env);
+extern "C" {
+	#ifdef WITH_LIBTASK
+		void taskmain (int argc, char **argv) {
+			k7::main(argc, argv, NULL);
+		}
+	#else
+		int main (int argc, char **argv, char **env) {
+			return k7::main(argc, argv, env);
+		}
+	#endif
 }
 #endif
 
