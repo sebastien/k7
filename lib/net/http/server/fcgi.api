@@ -3,11 +3,15 @@
 @class FCGI
 
 	@constructor
+	@end
 
-	@abstract @method accept
+	@method accept
+	@end
 
-	@abstract @method putstr
+	@method putstr
+	@end
 
-	@abstract @method free
+	@method free
+	@end
 
 @end
