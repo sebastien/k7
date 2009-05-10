@@ -1,0 +1,5 @@
+@module net.http.server.curl
+
+@function fetch
+| Returns an object with 'status', 'headers', 'charset' and 'response' properties.
+@end

@@ -1,0 +1,13 @@
+@module net.http.server.fcgi
+
+@class FCGI
+
+	@constructor
+
+	@abstract @method accept
+
+	@abstract @method putstr
+
+	@abstract @method free
+
+@end

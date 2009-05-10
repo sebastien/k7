@@ -1,0 +1,18 @@
+2009-05-10:
+
+	Major:
+
+	- No more toplevel primitves, just plain modules
+    - 'ENV' was moved to 'system.k7.ENV', 'print' was moved to 'system.k7.shell'
+	- K7 CPP core now only consists of a couple of primitive (setup, eval, exec, read, module)
+	- Modules now need 'MODULE_NAME' and 'MODULE_STATIC' and 'MODULE' does not take any parameters
+
+	Minor:
+
+	- Moved functionality from 'k7/main.cpp' to the 'system.k7.shell' module
+	- Updated modules to have { } in FUNCTION etc (useful for indentation in some editors)
+	- Preliminary AS_PLUGIN compilation option to enable dynamic module registration
+	- Modules JavaScript are now compiled in the build directory directly
+	- K7 command-line parsing is delegated to the 'system.k7.shell.command' function
+	
+# EOF

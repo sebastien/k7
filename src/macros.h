@@ -4,7 +4,7 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 09-Apr-2009
+// Last modification : 09-May-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_MACROS__
@@ -23,18 +23,19 @@ using namespace v8;
 /**
  * These macros are just shorthand to creat V8/JavaScript values that can be
  * passed to the V8 API or returned to the JavaScript environment */
+#define JS_CONTEXT                     v8::Context::GetCurrent()
+#define JS_GLOBAL                      JS_CONTEXT->Global()
 #define JS_str(s)                      v8::String::New(s)
 #define JS_str2(s,c)                   v8::String::New(s,c)
 #define JS_int(s)                      v8::Integer::New(s)
 #define JS_undefined                   v8::Undefined()
 #define JS_null                        v8::Null()
-#define JSOBJ_set(target,slot,value)   target->Set(JS_str(slot),value)
 #define JS_fn(f)                       v8::FunctionTemplate::New(f)->GetFunction()
-#define V8_FT(f)                       v8::FunctionTemplate::New(f)
 #define JS_obj(o)                      v8::Object::New(o)
 #define JS_bool(b)                     v8::Boolean::New(b)
-#define JS_throw(t, s)                 ThrowException(Exception::t(String::New(s)))
-#define JS_error(s)                    ThrowException(Exception::Error(String::New(s)))
+
+#define THROW(t, s)                   ThrowException(Exception::t(String::New(s)))
+#define ERROR(s)                      ThrowException(Exception::Error(String::New(s)))
 
 // ----------------------------------------------------------------------------
 //
@@ -64,8 +65,6 @@ using namespace v8;
 #define ARG_fn(name, c) \
 		Handle<Function> name = Handle<Function>::Cast(args[(c)])
 
-
-
 // ----------------------------------------------------------------------------
 //
 // FUNCTIONS MACROS
@@ -91,12 +90,28 @@ using namespace v8;
  * See the 'posix.cpp' module for examples. */
 
 #define OBJECT(name,fields,...) \
-	v8::Handle<Object> name(__VA_ARGS__) { \
-		v8::HandleScope handle_scope;\
-		v8::Handle<v8::FunctionTemplate>   __class__  = v8::FunctionTemplate::New();\
-		v8::Handle<v8::ObjectTemplate>     __object__ = __class__->InstanceTemplate();\
-		__object__->SetInternalFieldCount(fields);\
-		v8::Handle<v8::Object>               self = __object__->NewInstance();
+v8::Handle<Object> name(__VA_ARGS__) { \
+	v8::HandleScope handle_scope;\
+	v8::Handle<v8::FunctionTemplate>   __class__  = v8::FunctionTemplate::New();\
+	v8::Handle<v8::ObjectTemplate>     __object__ = __class__->InstanceTemplate();\
+	__object__->SetInternalFieldCount(fields);\
+	v8::Handle<v8::Object>               self = __object__->NewInstance();
+
+#define OBJECT_COPY_SLOTS(from,to) \
+{ \
+	Handle<Array> keys = from->GetPropertyNames(); \
+	for (int i = 0; i < keys->Length(); i ++) { \
+		Handle<String> key = keys->Get(JS_int(i))->ToString(); \
+		Handle<Value> val = from->Get(key); \
+		to->Set(key, val); \
+	} \
+}
+
+#define OBJECT_SET(o,s,v)   o->Set(JS_str(s), v)
+#define OBJECT_GET(o,s)     o->Get(JS_str(s))
+#define OBJECT_UNSET(o,s)   o->Set(JS_str(s), JS_undefined)
+#define OBJECT_PROTOTYPE(o) o->GetPrototype();
+
 
 #define INTERNAL(i,value) \
 	self->SetInternalField(i, v8::External::New((void*)value));
@@ -127,10 +142,17 @@ using namespace v8;
 //
 // ----------------------------------------------------------------------------
 
-#define MODULE(symbol,moduleName)\
-	extern "C" v8::Handle<v8::Object> symbol (v8::Handle<v8::Object>__module__) {\
+#define MODULE\
+	extern "C" v8::Handle<v8::Object> MODULE_STATIC (v8::Handle<v8::Object> __module__) {\
 		v8::Handle<v8::Object> self = __module__;
-#define END_MODULE                  return __module__; }
+#ifdef AS_PLUGIN
+	#define END_MODULE \
+	return __module__; } \
+	extern "C" void k7_module_init () {printf("Loading %s\n", MODULE_NAME)}
+#else
+	#define END_MODULE \
+	return __module__; }
+#endif
 
 // ----------------------------------------------------------------------------
 //
@@ -160,10 +182,10 @@ using namespace v8;
  * These macros allow to declare a module initialization function and register
  * FUNCTIONs in this module. */
 #define LINK_TO(lib)
-#define ENVIRONMENT                 void SetupEnvironment (v8::Handle<v8::Object> global,int argc, char** argv, char** env) {
 #define IMPORT(function)            extern "C" v8::Handle<v8::Object> function(v8::Handle<v8::Object> module);
-#define LOAD(moduleName,function)   function(EnsureModule(global,moduleName));
-#define EVAL(source)                ExecuteString(JS_str(source), JS_undefined, false);
+#define LOAD(moduleName,function)   function(k7::module(global, moduleName, NULL));
+#define EXEC(source)                k7::execute(source);
+#define EVAL(source)                k7::eval(source);
 
 #endif
 // EOF - vim: ts=4 sw=4 noet
