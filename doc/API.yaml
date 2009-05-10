@@ -27,10 +27,12 @@
 # When writing new modules, they should fit in the following tree of modules.
 core:
     modules:
+        PATH
+        ensure
         load
+        unload
         get
         has
-        PATH
     concurrency:pure JS
         Channel
         Future
@@ -40,16 +42,23 @@ core:
         Semaphore
         RendezVous
         libtask:
+            yield
+            exit
+            current
             
 system:
     engine:
         getState
         setState
+        snapshot
+        unsnapshot
     shell:
         stdin
         stdout
         argv
         env
+        exec
+        eval
     posix:
         fopen
         fread
