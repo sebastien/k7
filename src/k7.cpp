@@ -74,6 +74,10 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 
 	LOAD("system.k7.modules",      system_k7_modules);
 	LOAD("system.k7.shell",        system_k7_shell);
+
+	// NOTE: This is no good as it slows down the startup time,
+	// especially when there is pure JavaScript that requires parsing.
+
 	LOAD("system.posix",           system_posix);
 	LOAD("system.engine",          system_engine);
 	LOAD("data.formats.json",      data_formats_json);

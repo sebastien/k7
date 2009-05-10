@@ -29,7 +29,7 @@ INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 # Modules
 HAS_CURL              =$(shell locate include/curl/curl.h)
 HAS_FCGI              =$(shell locate include/fastcgi.h)
-HAS_LIBTASK           =$(shell find deps/libtask -name task.h)
+HAS_LIBTASK           =1
 ifeq  ($(PLATFORM),Darwin)
 	BUILD_LIBS        +=-liconv
 endif
@@ -41,7 +41,7 @@ ifneq ($(strip $(HAS_FCGI)),)
 	CPPFLAGS          +=-DWITH_FCGI
 	BUILD_LIBS        +=-lfcgi
 endif
-ifneq ($(HAS_LIBTASK),)
+ifeq ($(HAS_LIBTASK),1)
 	CPPFLAGS          += -DWITH_LIBTASK
 	BUILD_BINLIBS     += deps/libtask/libtask.a
 endif
@@ -66,6 +66,10 @@ clean:
 
 deps:
 	mkdir deps
+
+compact: k7
+	strip $<
+	upx --version && upx $<
 
 deps/v8:
 	#cd deps && svn checkout http://v8.googlecode.com/svn/trunk v8
