@@ -34,8 +34,8 @@ using namespace v8;
 #define JS_obj(o)                      v8::Object::New(o)
 #define JS_bool(b)                     v8::Boolean::New(b)
 
-#define THROW(t, s)                   ThrowException(Exception::t(String::New(s)))
-#define ERROR(s)                      ThrowException(Exception::Error(String::New(s)))
+#define JS_THROW(t, s)                   ThrowException(Exception::t(String::New(s)))
+#define JS_ERROR(s)                      ThrowException(Exception::Error(String::New(s)))
 
 // ----------------------------------------------------------------------------
 //
@@ -48,7 +48,8 @@ using namespace v8;
  * the JavaScript environment.
  * See the 'posix.cpp' module for examples. */
 #define ARGC                           args.Length()
-#define ARG_COUNT(c)                   if ( args.Length() != 0 ) {} 
+#define ARG_COUNT(c)                   if ( args.Length() != c ) { \
+                                       return ThrowException(String::New("Insufficient arguments")); } 
 #define ARG_BETWEEN(a,b)               if ( a <= args.Length() <= b ) {} 
 #define ARG_int(n,c)                   int n=(int)(args[c]->Int32Value())
 #define ARG_str(v,i)                   v8::String::AsciiValue v(args[i]);
@@ -77,7 +78,11 @@ using namespace v8;
 #define END                            }
 #define THIS                           args.This()
 #define STUB                           return ThrowException(Exception::Error(String::New("Stub - Function not implemented")));
- 
+#define SET_INTERNAL(ptr)       args.This()->SetInternalField(0, External::New((void*)ptr));
+#define GET_INTERNAL(type,var)  Local<Value> _intfld = args.This()->GetInternalField(0); \
+                                type var = reinterpret_cast<type>(Handle<External>::Cast(_intfld)->Value());
+#define THROW(str)              return ThrowException(String::New(str));
+
 // ----------------------------------------------------------------------------
 //
 // OBJECT MACROS
@@ -117,7 +122,7 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 	self->SetInternalField(i, v8::External::New((void*)value));
 
 #define EXTERNAL(type,name,object,indice) \
-	type name = (type) (v8::Local<v8::External>::Cast(object->GetInternalField(0))->Value());
+	type name = (type) (v8::Local<v8::External>::Cast(object->GetInternalField(indice))->Value());
 
 // ----------------------------------------------------------------------------
 //
@@ -134,6 +139,7 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 		__class__->SetClassName(v8::String::New(name)); 
 #define CONSTRUCTOR(c)       __class__->SetCallHandler(c);
 #define INTERNAL_FIELDS(i)   __object__->SetInternalFieldCount(i);
+#define HAS_INTERNAL         __object__->SetInternalFieldCount(1);
 #define END_CLASS            __module__->Set(__class_name__,__class__->GetFunction(),v8::PropertyAttribute(v8::ReadOnly|v8::DontDelete));}
 
 // ----------------------------------------------------------------------------
@@ -170,6 +176,7 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 
 #define BIND(s,v)         self->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
 #define METHOD(s,v)       __object__->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
+#define BIND_CONST(s,v)     self->Set(JS_str(s),v);
 #define CLASS_METHOD(s,v) __class__->Set(JS_str(s),v8::FunctionTemplate::New(v)->GetFunction());
 
 // ----------------------------------------------------------------------------
@@ -186,6 +193,10 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 #define LOAD(moduleName,function)   function(k7::module(global, moduleName, NULL));
 #define EXEC(source)                k7::execute(source);
 #define EVAL(source)                k7::eval(source);
+
+
+// environment utility functions
+void ReportException(const TryCatch *);
 
 #endif
 // EOF - vim: ts=4 sw=4 noet

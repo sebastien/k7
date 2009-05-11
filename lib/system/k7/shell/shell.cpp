@@ -71,7 +71,7 @@ FUNCTION(shell_run)
 		OBJECT_SET(JS_GLOBAL,"__file__", previous);
 		return result;
 	} else {
-		ERROR("shell.run: File not found");
+		JS_ERROR("shell.run: File not found");
 	}
 	return JS_undefined;
 }

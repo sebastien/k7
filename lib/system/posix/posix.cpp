@@ -2,23 +2,33 @@
 // Project           : K7 - Standard Library for V8
 // -----------------------------------------------------------------------------
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
+//                     Victor Grishchenko
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 08-May-2009
+// Last modification : 11-May-2009
 // ----------------------------------------------------------------------------
 
 #include "k7.h"
 
+// FIXME: I dont' know if this is Linux only... probably !
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
+
+
 
 #define MODULE_NAME   system.posix
 #define MODULE_STATIC system_posix
 
 OBJECT(posix_FILE,1,FILE* file)
 {
-	INTERNAL(0,file)
+	INTERNAL(0,file);
 	return self;
 }
 END
@@ -193,8 +203,30 @@ FUNCTION(posix_pthread_create)
 }
 END
 
-MODULE
+FUNCTION(posix_open)
 {
+	ARG_COUNT(2);
+	ARG_str(name,0);
+	ARG_int(mode,1);
+	int fd = open(*name,mode,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+	if (fd<0) {
+		return ThrowException(String::New(strerror(errno)));
+	} else {
+		return Integer::New(fd);
+	}
+}
+END
+
+FUNCTION(posix_close)
+{
+	ARG_COUNT(1);
+	ARG_int(fd,0);
+	close(fd);
+	return JS_undefined;
+}
+END
+
+MODULE
 	// FIXME: When I set the module 'time' slot to a string, accessing the slot
 	// from JavaScript works, but when I BIND it to the posix_time function, the
 	// JavaScript returns undefined. Even worse, the next BIND has no effect.
@@ -210,8 +242,15 @@ MODULE
 	BIND("popen",     posix_popen);
 	BIND("pclose",    posix_pclose);
 	BIND("system",    posix_system);
-	BIND("pthread_create",  posix_pthread_create);
-}
+	BIND("open",      posix_open);
+	BIND("close",     posix_close);
+	BIND("close",     posix_close);
+	SET_int("O_RDWR",    O_RDWR);
+	SET_int("O_RDONLY",  O_RDONLY);
+	SET_int("O_WRONLY",  O_WRONLY);
+	SET_int("O_NONBLOCK",O_NONBLOCK);
+	SET_int("O_CREAT",   O_CREAT);
+	SET_int("O_TRUNC",   O_TRUNC);
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet

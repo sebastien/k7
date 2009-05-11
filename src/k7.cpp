@@ -46,6 +46,9 @@ IMPORT(net_http_client_curl);
 #ifdef WITH_LIBTASK
 IMPORT(core_concurrency_libtask);
 #endif
+#ifdef WITH_EVENT
+	IMPORT(system_event);
+#endif 
 
 /**
  * Sets up the K7 environment, loading the module system and the shell.
@@ -87,6 +90,9 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 #endif
 #ifdef WITH_CURL
 	LOAD("net.http.client.curl",   net_http_client_curl);
+#endif
+#ifdef WITH_EVENT
+	LOAD("system.event",           system_event);
 #endif
 #ifdef WITH_LIBTASK
 	LOAD("core.concurrency.libtask",   core_concurrency_libtask);

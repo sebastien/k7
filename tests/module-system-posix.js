@@ -14,5 +14,3 @@ var fd    = posix.popen("cat posixtest.txt", "r")
 var data  = posix.fread(1,1024,fd)
 print ("popen:" + data)
 posix.pclose(fd)
-
-

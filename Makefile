@@ -2,7 +2,7 @@
 # fastcgi.h - libfcgi-dev
 # curl.h    - libcurl*-dev
 PRODUCT               =k7
-VERSION               =20090415
+VERSION               =20090511
 
 PLATFORM              =$(shell uname -s)
 CPP                   =g++
@@ -29,7 +29,9 @@ INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 # Modules
 HAS_CURL              =$(shell locate include/curl/curl.h)
 HAS_FCGI              =$(shell locate include/fastcgi.h)
-HAS_LIBTASK           =1
+HAS_EVENT             =$(shell locate include/event2/event.h)
+HAS_LIBTASK           =0
+
 ifeq  ($(PLATFORM),Darwin)
 	BUILD_LIBS        +=-liconv
 endif
@@ -41,10 +43,17 @@ ifneq ($(strip $(HAS_FCGI)),)
 	CPPFLAGS          +=-DWITH_FCGI
 	BUILD_LIBS        +=-lfcgi
 endif
+
+ifneq ($(strip $(HAS_EVENT)),)
+	CPPFLAGS          +=-DWITH_EVENT
+	BUILD_LIBS        +=-levent
+endif
+
 ifeq ($(HAS_LIBTASK),1)
 	CPPFLAGS          += -DWITH_LIBTASK
 	BUILD_BINLIBS     += deps/libtask/libtask.a
 endif
+
 
 all: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
 	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
@@ -83,6 +92,10 @@ deps/shttpd/src/libshttpd.a:
 
 deps/shttpd:
 	cd deps && wget 'http://voxel.dl.sourceforge.net/sourceforge/shttpd/shttpd-1.42.tar.gz' && tar fvxz shttpd-1.42.tar.gz && rm shttpd-1.42.tar.gz && mv shttpd-1.42 shttpd
+
+deps/libevent:
+	cd deps && wget 'http://www.monkey.org/~provos/libevent-2.0.1-alpha.tar.gz' && tar xzvf libevent-2.0.1-alpha.tar.gz && rm libevent-2.0.1-alpha.tar.gz && mv libevent-2.0.1-alpha libevent
+
 deps/v8/libv8.a: deps/v8
 	cd deps/v8 && scons
 
