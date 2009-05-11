@@ -43,7 +43,7 @@ END
 
 FUNCTION(module_update)
 {
-	ARG_COUNT(1)
+	ARG_COUNT(2)
 	ARG_obj(module, 0);
 	ARG_obj(update, 1);
 	OBJECT_COPY_SLOTS(update, module);

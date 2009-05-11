@@ -4,7 +4,7 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 09-May-2009
+// Last modification : 11-May-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_MACROS__
@@ -81,7 +81,6 @@ using namespace v8;
 #define SET_INTERNAL(ptr)       args.This()->SetInternalField(0, External::New((void*)ptr));
 #define GET_INTERNAL(type,var)  Local<Value> _intfld = args.This()->GetInternalField(0); \
                                 type var = reinterpret_cast<type>(Handle<External>::Cast(_intfld)->Value());
-#define THROW(str)              return ThrowException(String::New(str));
 
 // ----------------------------------------------------------------------------
 //
@@ -193,10 +192,6 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 #define LOAD(moduleName,function)   function(k7::module(global, moduleName, NULL));
 #define EXEC(source)                k7::execute(source);
 #define EVAL(source)                k7::eval(source);
-
-
-// environment utility functions
-void ReportException(const TryCatch *);
 
 #endif
 // EOF - vim: ts=4 sw=4 noet

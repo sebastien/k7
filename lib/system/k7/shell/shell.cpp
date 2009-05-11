@@ -4,7 +4,7 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 08-May-2008
-// Last modification : 09-May-2009
+// Last modification : 11-May-2009
 // ----------------------------------------------------------------------------
 
 #include "k7.h"
