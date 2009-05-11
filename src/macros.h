@@ -11,6 +11,7 @@
 #define __K7_MACROS__
 
 #include <k7.h>
+#include <stdarg.h>
 
 using namespace v8;
 
@@ -65,7 +66,51 @@ using namespace v8;
 #define ARG_fn(name, c) \
 		Handle<Function> name = Handle<Function>::Cast(args[(c)])
 
+v8::Handle<v8::String> strmrg (const char* tmpl, ...) ;
 
+#define ARGINT(n,comment)   if (args.Length()<++_argn) \
+                                return ThrowException(strmrg("Insufficient arguments; need arg %i, %s\n",_argn,comment)); \
+                            if (!args[_argn-1]->IsInt32()) \
+                                return ThrowException(strmrg("Argument %i, %s, must be an integer\n",_argn,comment)); \
+                            int n=(int)(args[_argn-1]->Int32Value());
+#define ARGSTR(n,comment)   if (args.Length()<++_argn) \
+                                return ThrowException(strmrg("Insufficient arguments; need arg %i, %s\n",_argn,comment)); \
+                            v8::String::AsciiValue n(args[_argn-1]);
+#define ARGOBJ(n,comment)   if (args.Length()<++_argn) \
+                                return ThrowException(strmrg("Insufficient arguments; need arg %i, %s\n",_argn,comment)); \
+                            if (!args[_argn-1]->IsObject()) \
+                                return ThrowException(strmrg("Argument %i, %s, must be an object\n",_argn,comment)); \
+                            v8::Handle<v8::Object> n (args[_argn-1]->ToObject());
+#define ARGFNC(n,comment)   if (args.Length()<++_argn) \
+                                return ThrowException(strmrg("Insufficient arguments; need arg %i, %s\n",_argn,comment)); \
+                            if (!args[_argn-1]->IsFunction()) \
+                                return ThrowException(strmrg("Argument %i, %s, must be a function\n",_argn,comment));  \
+                            v8::Handle<v8::Function> n (v8::Function::Cast(*args[_argn-1]));
+
+
+
+
+// pointer wrapping/unwrapping
+static v8::Persistent<v8::ObjectTemplate>  __wrapper__((v8::ObjectTemplate*)NULL);
+
+#define UNWRAP(type,name,object,cookie) \
+                            if (!object->IsExternal())  \
+                                return ThrowException(String::New("non-external object supplied")); \
+                            String::AsciiValue val(object->GetInternalField(1));   \
+                            if (strcmp(*val,cookie))    \
+                                return ThrowException(strmrg("invalid object type; got %s need %s",*val,cookie)); \
+                            type name = (type) (v8::Local<v8::External>::Cast(object->GetInternalField(0))->Value());
+#define WRAP(object,value,cookie) \
+		                    if (*__wrapper__==NULL) {\
+                                v8::Handle<v8::FunctionTemplate>   __class__  = v8::FunctionTemplate::New();\
+		                        __wrapper__ = v8::Persistent<v8::ObjectTemplate>::New(__class__->InstanceTemplate());\
+		                        __wrapper__->SetInternalFieldCount(2);\
+                            }   \
+                            Handle<Object> object = __wrapper__->NewInstance();  \
+                            object->SetInternalField(0, v8::External::New((void*)value));   \
+                            object->SetInternalField(1, v8::String::New(cookie));   \
+                            object->Set(String::New("type"),String::New(cookie));
+                            
 
 // ----------------------------------------------------------------------------
 //
@@ -74,7 +119,8 @@ using namespace v8;
 // ----------------------------------------------------------------------------
 
 #define FUNCTION_DECL(f)               static v8::Handle<v8::Value> f(const v8::Arguments&);
-#define FUNCTION(f)                    static v8::Handle<v8::Value> f(const v8::Arguments& args) { v8::HandleScope handlescope;
+#define FUNCTION(f)                    static v8::Handle<v8::Value> f(const v8::Arguments& args) { \
+                                            v8::HandleScope handlescope; int _argn=0;
 #define FUNCTION_C(f)                  static v8::Handle<v8::Value> f(const v8::Arguments& args) {
 #define END                            }
 #define THIS                           args.This()
@@ -83,6 +129,8 @@ using namespace v8;
 #define GET_INTERNAL(type,var)  Local<Value> _intfld = args.This()->GetInternalField(0); \
                                 type var = reinterpret_cast<type>(Handle<External>::Cast(_intfld)->Value());
 #define THROW(str)              return ThrowException(String::New(str));
+#define RETURN_SCOPED(x)        return handlescope.Close(x);
+#define RETURN_UNDEF            return v8::Undefined();
 
 // ----------------------------------------------------------------------------
 //
@@ -167,7 +215,7 @@ using namespace v8;
  * These macros allow to declare a module initialization function and register
  * FUNCTIONs in this module. */
 #define LINK_TO(lib)
-#define ENVIRONMENT                 void SetupEnvironment (v8::Handle<v8::Object> global,int argc, char** argv, char** env) {
+#define ENVIRONMENT                 void SetupEnvironment (v8::Handle<v8::Object> global,int argc, char** argv, char** env) { 
 #define IMPORT(function)            extern "C" v8::Handle<v8::Object> function(v8::Handle<v8::Object> module);
 #define LOAD(moduleName,function)   function(EnsureModule(global,moduleName));
 #define EVAL(source)                ExecuteString(JS_str(source), JS_undefined, false);

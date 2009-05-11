@@ -158,6 +158,15 @@ void copy_obj( Handle<Object> from, Handle<Object> to)
 	}
 }
 
+v8::Handle<v8::String> strmrg (const char* tmpl, ...) {
+    char msg[1024];
+    va_list ap;
+    va_start (ap, tmpl);
+    vsnprintf(msg,1000,tmpl,ap);
+    va_end(ap);
+    return v8::String::New(msg);
+}
+
 
 // @TODO: Move this to system.engine
 static Handle<Value> EvalCX (const Arguments& args)

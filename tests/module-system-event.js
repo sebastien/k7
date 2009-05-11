@@ -1,26 +1,30 @@
 var event = system.event;
 var net = net.posix;
-var buf = new event.Buffer();
 
-buf.push8(11);
-var eleven = buf.pull8();
-print("eleven == "+eleven+"\n");
-buf.push8(33);
-
+try{
+    var buf = new event.Buffer();
+    buf.push8(11);
+    var eleven = buf.pull8();
+    print("eleven == "+eleven+"\n");
+} catch (exc) {
+    print("exception: "+exc);
+}
+/*buf.push8(33);
 var posix = system.posix;
-
-var fd = posix.open("test",posix.O_RDWR|posix.O_CREAT|posix.O_TRUNC);
+var fd = posix.open(".test",posix.O_RDWR|posix.O_CREAT|posix.O_TRUNC);
 if (fd==undefined) {
     print("file open error");
     exit(1);
 }
 buf.write(fd);
-posix.close(fd);
+posix.close(fd);*/
+
+var secret_text = "Hello "+Math.random();
 
 function maywrite (fd,ev) {
-    print("Event!\n");
+    print("May write!\n");
     var str = new event.Buffer();
-    str.push_str("Hello!\n");
+    str.push_str(secret_text+"\n");
     str.write(fd);
     net.close(fd);
 }
@@ -35,6 +39,18 @@ function mayaccept (fd, ev) {
     event.add(newconn,event.EV_WRITE,{obj:'dummy'},maywrite);
 }
 
+function mayread (fd,ev) {
+    var rdbf = new event.Buffer();
+    rdbf.read(fd,1024);
+    var str = rdbf.readln();
+    print("read: '"+str+"'\n");
+    if (str==secret_text)
+        print("SUCCESS!\n");
+    else
+        print("FAILURE: "+secret_text+"!="+str+"\n");
+    net.close(fd);
+}
+
 var sock;
 try {
     sock = net.socket_tcp();
@@ -44,6 +60,12 @@ try {
     print("bound!\n");
     net.listen(sock);
     event.add(sock,event.EV_READ,{obj:'dummy'},mayaccept);
+    print("yep,added\n");
+    var client = net.socket_tcp();
+    event.make_socket_nonblocking(client);
+    try{ net.connect(client,{addr:"127.0.0.1",port:7001}); } catch (oip) {}
+    print("connected\n");
+    event.add(client,event.EV_READ,{obj:'dummy'},mayread);
     event.loop(10000);
 } catch (error) {
     print("error in network code: "+error);

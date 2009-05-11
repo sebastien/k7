@@ -9,38 +9,27 @@
 
 using namespace v8;
 
-FUNCTION(event_echo)
-    ARG_COUNT(1);
-    ARG_str(str,0);
-    printf("%s\n",*str);
-    return Undefined();
-END
-
 FUNCTION(evbuf_constructor)
-    ARG_COUNT(0);
     evbuffer* buf = evbuffer_new();
     SET_INTERNAL(buf);
     return args.This();
 END
 
 FUNCTION(evbuf_push8)
-    ARG_COUNT(1);
-    ARG_int(byte,0);
+    ARGINT(byte,"a byte to push");
     GET_INTERNAL(evbuffer*,buf);
     evbuffer_add(buf,&byte,1);
     return Undefined();
 END
 
 FUNCTION(evbuf_push_str)
-    ARG_COUNT(1);
-    ARG_str(str,0);
+    ARGSTR(str,"string to push");
     GET_INTERNAL(evbuffer*,buf);
     evbuffer_add(buf,*str,str.length());
     return Undefined();
 END
 
 FUNCTION(evbuf_pull8)
-    ARG_COUNT(0);
     uint8_t byte;
     GET_INTERNAL(evbuffer*,buf);
     if (1!=evbuffer_remove(buf,&byte,1))
@@ -49,18 +38,24 @@ FUNCTION(evbuf_pull8)
         return Integer::New((int)byte);
 END
 
+FUNCTION(evbuf_readln)
+    GET_INTERNAL(evbuffer*,buf);
+    char* str = evbuffer_readln(buf,NULL,EVBUFFER_EOL_CRLF);
+    Handle<String> retstr(String::New(str));
+    free(str);
+    return handlescope.Close(retstr); // FIXME
+END
+    
 FUNCTION(evbuf_read)
-    ARG_COUNT(2);
-    ARG_int(fd,0);
-    ARG_int(toread,1);
+    ARGINT(fd,"file descriptor");
+    ARGINT(toread,"max bytes read");
     GET_INTERNAL(evbuffer*,buf);
     size_t justread = evbuffer_read(buf,fd,toread);
     return Integer::New(justread);
 END
 
 FUNCTION(evbuf_write)
-    ARG_COUNT(1);
-    ARG_int(fd,0);
+    ARGINT(fd,"file descriptor");
     GET_INTERNAL(evbuffer*,buf);
     size_t written = evbuffer_write(buf,fd);
     return Integer::New(written);
@@ -71,13 +66,14 @@ struct _ev_memo_t {
     Persistent<Object> obj;
     Persistent<Function> func;
 };
+static const char* EV_MEMO_COOKIE = "_ev_memo_t";
 
-OBJECT(event_EVENT,1,struct _ev_memo_t* ev)
+/*OBJECT(event_EVENT,1,struct _ev_memo_t* ev)
     INTERNAL(0,ev);
     return self;
-END
+END*/
 
-event_base * _base;
+event_base * _base = NULL;
 
 void _ev_cb (evutil_socket_t fd, short what, void *arg) {
     printf("callback!!!\n");
@@ -93,11 +89,10 @@ void _ev_cb (evutil_socket_t fd, short what, void *arg) {
 }
 
 FUNCTION(le_event_add)
-    ARG_COUNT(4);
-    ARG_int(fd,0);
-    ARG_int(flags,1);
-    ARG_obj(obj,2);
-    ARG_fn(ev_js_cb,3);
+    ARGINT(fd,"file descriptor");
+    ARGINT(flags,"EV_* flags");
+    ARGOBJ(obj,"callback object");
+    ARGFNC(ev_js_cb,"callback function");
     //ARG_str(comment,4);
     _ev_memo_t* memo = (_ev_memo_t*)malloc(sizeof(_ev_memo_t));
     memo->obj = Persistent<Object>::New(obj);
@@ -105,13 +100,15 @@ FUNCTION(le_event_add)
     event_assign(&(memo->e),_base,fd,flags,_ev_cb,memo);
     event_add(&(memo->e),NULL);
     printf("event added fd %i\n",fd);
-    return event_EVENT(memo);
+    WRAP(wrapped,memo,EV_MEMO_COOKIE);
+    printf("Wrapped!\n");
+    RETURN_SCOPED(wrapped);
 END
 
 FUNCTION(le_event_del)
-    ARG_COUNT(1);
-    ARG_obj(evObj,0);
-    EXTERNAL(struct _ev_memo_t*,memo,evObj,0);
+    ARGOBJ(evObj,"event wrapper object");
+    //EXTERNAL(struct _ev_memo_t*,memo,evObj,0);
+    UNWRAP(struct _ev_memo_t*,memo,evObj,EV_MEMO_COOKIE);
     event_del(&(memo->e));
     memo->obj.Dispose();
     memo->func.Dispose();
@@ -119,8 +116,7 @@ FUNCTION(le_event_del)
 END
 
 FUNCTION(le_event_loop)
-    ARG_COUNT(1);
-    ARG_int(millis,0);
+    ARGINT(millis,"milliseconds");
     struct timeval delay;
     delay.tv_sec = millis/1000;
     delay.tv_usec = (millis%1000)*1000;
@@ -129,8 +125,7 @@ FUNCTION(le_event_loop)
 END
 
 FUNCTION(le_make_socket_nonblocking)
-    ARG_COUNT(1);
-    ARG_int(sock,0);
+    ARGINT(sock,"socket fd");
     int ret = evutil_make_socket_nonblocking(sock);
     return Integer::New(ret);
 END
@@ -144,6 +139,7 @@ MODULE(system_event,"system.event")
         METHOD("read",evbuf_read);
         METHOD("write",evbuf_write);
         METHOD("push_str",evbuf_push_str);
+        METHOD("readln",evbuf_readln);
     END_CLASS
     WITH_MODULE
     BIND("add",le_event_add);
