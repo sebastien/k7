@@ -2,7 +2,7 @@
 # fastcgi.h - libfcgi-dev
 # curl.h    - libcurl*-dev
 PRODUCT               =k7
-VERSION               =20090511
+VERSION               =`date +'%Y%m%d'`
 
 PLATFORM              =$(shell uname -s)
 CPP                   =g++
@@ -54,31 +54,52 @@ ifeq ($(HAS_LIBTASK),1)
 	BUILD_BINLIBS     += deps/libtask/libtask.a
 endif
 
-
-all: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
-	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
+.PHONY: options info xinfo
 
 info:
+	@echo "K7 build system"
+	@echo
+	@echo "k7      - builds the ./k7 binary"
+	@echo "compact - compacts the ./k7 binary (requires uxp)"
+	@echo "api     - builds the API documentation (requires sdoc)"
+	@echo "clean   - cleans the build system"
+	@echo "options - displays available configuration options"
+	@echo
+	@echo "NOTE: build requires svn, scons and python in addition to gcc"
+
+xinfo:
 	@echo "Modules (native): $(MODULES)"
 	@echo "Modules (js):     $(MODULES_JS)"
 	@echo "Sources:          $(SOURCES)"
 	@echo "API:              $(SOURCES_API)"
 
+options:
+	@echo "K7 build options"
+	@echo
+	@echo "HAS_CURL    - Enables curl bindings     (default=1, requires curl.h)"
+	@echo "HAS_FCGI    - Enables FCGI bindings     (default=1, requires fastcgi.h)"
+	@echo "HAS_EVENT   - Enables libevent bindings (default=1, requires event2/event.h)"
+	@echo "HAS_LIBTASK - Enables libtask bindings  (default=0)"
+
+k7: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
+	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
+
 api: doc/k7-api.html
 	
-
-build:
-	mkdir build
-
-clean:
-	rm -rf build
-
-deps:
-	mkdir deps
 
 compact: k7
 	strip $<
 	upx --version && upx $<
+
+clean:
+	rm -rf build
+
+build:
+	mkdir build
+
+deps:
+	mkdir deps
+
 
 deps/v8:
 	#cd deps && svn checkout http://v8.googlecode.com/svn/trunk v8
