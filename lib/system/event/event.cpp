@@ -1,157 +1,181 @@
 #ifdef WITH_EVENT
 #include "macros.h"
 #include <stdint.h>
+#include <arpa/inet.h>
+#include <stdio.h>
 #include <event2/event.h>
 #include <event2/buffer.h>
 #include <event2/event_struct.h>
 #include <event2/util.h>
-#include <stdio.h>
 
 using namespace v8;
 
-FUNCTION(evbuf_constructor)
+
+void evbuf_free(Persistent<Value> watcher, void* parameter) {
+    evbuffer_free((evbuffer*)parameter);
+    watcher.Dispose();
+}
+
+FUNCTION(evbuf_new) {
     evbuffer* buf = evbuffer_new();
-    SET_INTERNAL(buf);
-    return args.This();
-END
+    Handle<External> ext(External::New(buf));
+    Persistent<External> watcher = Persistent<External>::New(ext);
+    watcher.MakeWeak(buf, evbuf_free);
+    RETURN_SCOPED(ext);
+} END
 
-FUNCTION(evbuf_push8)
-    ARGINT(byte,"a byte to push");
+FUNCTION(evbuf_destructor) {
     GET_INTERNAL(evbuffer*,buf);
-    evbuffer_add(buf,&byte,1);
-    return Undefined();
-END
+    evbuffer_free(buf);
+} END
 
-FUNCTION(evbuf_push_str)
-    ARGSTR(str,"string to push");
-    GET_INTERNAL(evbuffer*,buf);
+FUNCTION(evbuf_add8,PWRAP(evbuffer,buf),PINT(i)) {
+    uint8_t i8 = i;
+    evbuffer_add(buf,&i8,1);
+    RETURN_UNDEF;
+} END
+
+FUNCTION(evbuf_add16,PWRAP(evbuffer,buf),PINT(i)) {
+    uint16_t i16 = htons(i);
+    evbuffer_add(buf,&i16,2);
+    RETURN_UNDEF;
+} END
+
+FUNCTION(evbuf_add32,PWRAP(evbuffer,buf),PINT(i)) {
+    uint32_t i32 = htonl(i);
+    evbuffer_add(buf,&i32,4);
+    RETURN_UNDEF;
+} END
+
+FUNCTION(evbuf_add,PWRAP(evbuffer,buf),PSTR(str)) {
     evbuffer_add(buf,*str,str.length());
-    return Undefined();
-END
+    RETURN_UNDEF;
+} END
 
-FUNCTION(evbuf_pull8)
+FUNCTION(evbuf_remove8,PWRAP(evbuffer,buf)) {
     uint8_t byte;
-    GET_INTERNAL(evbuffer*,buf);
     if (1!=evbuffer_remove(buf,&byte,1))
-        return Undefined();
+        RETURN_UNDEF;
     else
-        return Integer::New((int)byte);
-END
+        RETURN_INT(byte);
+} END
 
-FUNCTION(evbuf_readln)
-    GET_INTERNAL(evbuffer*,buf);
+FUNCTION(evbuf_remove16,PWRAP(evbuffer,buf)) {
+    uint16_t i;
+    if (1!=evbuffer_remove(buf,&i,2))
+        RETURN_UNDEF;
+    else
+        RETURN_INT(ntohs(i));
+} END
+
+FUNCTION(evbuf_remove32,PWRAP(evbuffer,buf)) {
+    uint32_t i;
+    if (1!=evbuffer_remove(buf,&i,1))
+        RETURN_UNDEF;
+    else
+        RETURN_INT(htonl(i));
+} END
+
+FUNCTION(evbuf_remove,PWRAP(evbuffer,buf)) {
+    size_t len = evbuffer_get_length(buf);
+    char* b = (char*)evbuffer_pullup(buf,len);
+    Handle<String> ret = String::New(b,len);
+    evbuffer_drain(buf,len);
+    RETURN_SCOPED(ret);
+} END
+
+FUNCTION(evbuf_readln,PWRAP(evbuffer,buf)) {
     char* str = evbuffer_readln(buf,NULL,EVBUFFER_EOL_CRLF);
     Handle<String> retstr(String::New(str));
     free(str);
-    return handlescope.Close(retstr); // FIXME
-END
+    RETURN_SCOPED(retstr);
+} END
     
-FUNCTION(evbuf_read)
-    ARGINT(fd,"file descriptor");
-    ARGINT(toread,"max bytes read");
-    GET_INTERNAL(evbuffer*,buf);
-    size_t justread = evbuffer_read(buf,fd,toread);
-    return Integer::New(justread);
-END
+FUNCTION(evbuf_read,PWRAP(evbuffer,buf),PINT(file_des),PINT(max_bytes)) {
+    size_t justread = evbuffer_read(buf,file_des,max_bytes);
+    RETURN_INT(justread);
+} END
 
-FUNCTION(evbuf_write)
-    ARGINT(fd,"file descriptor");
-    GET_INTERNAL(evbuffer*,buf);
-    size_t written = evbuffer_write(buf,fd);
-    return Integer::New(written);
-END
+FUNCTION(evbuf_write,PWRAP(evbuffer,buf),PINT(file_des)) {
+    size_t written = evbuffer_write(buf,file_des);
+    RETURN_INT(written);
+} END
 
 struct _ev_memo_t {
     event e;
     Persistent<Object> obj;
     Persistent<Function> func;
 };
-static const char* EV_MEMO_COOKIE = "_ev_memo_t";
-
-/*OBJECT(event_EVENT,1,struct _ev_memo_t* ev)
-    INTERNAL(0,ev);
-    return self;
-END*/
 
 event_base * _base = NULL;
 
 void _ev_cb (evutil_socket_t fd, short what, void *arg) {
-    printf("callback!!!\n");
     HandleScope scope;
     struct _ev_memo_t * memo = (struct _ev_memo_t *) arg;
     Handle<Value> arr [] = {JS_int(fd),JS_int(what)};
     TryCatch tc;
-    memo->func->Call(memo->obj,2,arr);
-    if (tc.HasCaught()) {
+    Handle<Value> ret = memo->func->Call(memo->obj,2,arr);
+    if (tc.HasCaught())
         ReportException(&tc);
+    if (tc.HasCaught() || !ret->IsBoolean() || !ret->ToBoolean()->Value()) {
+        event_del(&(memo->e));
+        memo->obj.Dispose();
+        memo->func.Dispose();
     }
-    // FIXME free if not PERSISTENT
 }
 
-FUNCTION(le_event_add)
-    ARGINT(fd,"file descriptor");
-    ARGINT(flags,"EV_* flags");
-    ARGOBJ(obj,"callback object");
-    ARGFNC(ev_js_cb,"callback function");
-    //ARG_str(comment,4);
+FUNCTION(le_event_add,PINT(fd),PINT(flags),POBJ(cbthis),PFUN(cbfun)) {
     _ev_memo_t* memo = (_ev_memo_t*)malloc(sizeof(_ev_memo_t));
-    memo->obj = Persistent<Object>::New(obj);
-    memo->func = Persistent<Function>::New(ev_js_cb);
-    event_assign(&(memo->e),_base,fd,flags,_ev_cb,memo);
+    memo->obj = Persistent<Object>::New(cbthis);
+    memo->func = Persistent<Function>::New(cbfun);
+    event_assign(&(memo->e),_base,fd,flags|EV_PERSIST,_ev_cb,memo);
     event_add(&(memo->e),NULL);
     printf("event added fd %i\n",fd);
-    WRAP(wrapped,memo,EV_MEMO_COOKIE);
-    printf("Wrapped!\n");
-    RETURN_SCOPED(wrapped);
-END
+    RETURN_WRAPPED(memo);
+} END
 
-FUNCTION(le_event_del)
-    ARGOBJ(evObj,"event wrapper object");
-    //EXTERNAL(struct _ev_memo_t*,memo,evObj,0);
-    UNWRAP(struct _ev_memo_t*,memo,evObj,EV_MEMO_COOKIE);
+FUNCTION(le_event_del,PWRAP(_ev_memo_t,memo)) {
     event_del(&(memo->e));
     memo->obj.Dispose();
     memo->func.Dispose();
     free(memo);
-END
+} END
 
-FUNCTION(le_event_loop)
-    ARGINT(millis,"milliseconds");
+FUNCTION(le_event_loop,PINT(millis)) {
     struct timeval delay;
     delay.tv_sec = millis/1000;
     delay.tv_usec = (millis%1000)*1000;
     //event_base_loopexit(_base,&delay);
     event_base_loop(_base,0);
-END
+} END
 
-FUNCTION(le_make_socket_nonblocking)
-    ARGINT(sock,"socket fd");
+FUNCTION(le_make_socket_nonblocking,PINT(sock)) {
     int ret = evutil_make_socket_nonblocking(sock);
-    return Integer::New(ret);
-END
+    RETURN_INT(ret);
+} END
 
 MODULE(system_event,"system.event")
-    CLASS("Buffer")
-        HAS_INTERNAL;
-        CONSTRUCTOR(evbuf_constructor);
-        METHOD("push8",evbuf_push8);
-        METHOD("pull8",evbuf_pull8);
-        METHOD("read",evbuf_read);
-        METHOD("write",evbuf_write);
-        METHOD("push_str",evbuf_push_str);
-        METHOD("readln",evbuf_readln);
-    END_CLASS
-    WITH_MODULE
-    BIND("add",le_event_add);
-    BIND("del",le_event_del);
-    BIND("loop",le_event_loop);
+    BIND("buffer_new",evbuf_new);
+    //DESTRUCTOR(evbuf_destructor)
+    BIND("buffer_add8",evbuf_add8);
+    BIND("buffer_add16",evbuf_add16);
+    BIND("buffer_add32",evbuf_add32);
+    BIND("buffer_add",evbuf_add);
+    BIND("buffer_remove8",evbuf_remove8);
+    BIND("buffer_remove16",evbuf_remove16);
+    BIND("buffer_remove32",evbuf_remove32);
+    BIND("buffer_remove",evbuf_remove);
+    BIND("buffer_read",evbuf_read);
+    BIND("buffer_write",evbuf_write);
+    BIND("buffer_readln",evbuf_readln);
+    BIND("event_add",le_event_add);
+    BIND("event_del",le_event_del);
+    BIND("event_loop",le_event_loop);
     BIND("make_socket_nonblocking",le_make_socket_nonblocking);
     SET_int("EV_TIMEOUT",EV_TIMEOUT);
     SET_int("EV_READ",EV_READ);
     SET_int("EV_WRITE",EV_WRITE);
-    SET_int("EV_PERSIST",EV_PERSIST);
     SET_int("EV_SIGNAL",EV_SIGNAL);
-    END
     struct event_config *cfg = event_config_new();
     event_config_require_features(cfg,EV_FEATURE_FDS);
     _base = event_base_new_with_config(cfg);

@@ -1,86 +1,57 @@
-var event = system.event;
-var net = net.posix;
-
-try{
-    var buf = new event.Buffer();
-    buf.push8(11);
-    var eleven = buf.pull8();
-    print("eleven == "+eleven+"\n");
-} catch (exc) {
-    print("exception: "+exc);
-}
-/*buf.push8(33);
-var posix = system.posix;
-var fd = posix.open(".test",posix.O_RDWR|posix.O_CREAT|posix.O_TRUNC);
-if (fd==undefined) {
-    print("file open error");
-    exit(1);
-}
-buf.write(fd);
-posix.close(fd);*/
+var ev = system.event;
+var px = net.posix;
 
 var secret_text = "Hello "+Math.random();
 
-function maywrite (fd,ev) {
+function maywrite (fd,evtype) {
     print("May write!\n");
-    var str = new event.Buffer();
-    str.push_str(secret_text+"\n");
-    str.write(fd);
-    net.close(fd);
+    var str = ev.buffer_new();
+    ev.buffer_add(str,secret_text+"\n");
+    ev.buffer_write(str,fd);
+    px.close(fd);
 }
 
-function mayaccept (fd, ev) {
-    var conn = net.accept(fd);
+function mayaccept (fd, evtype) {
+    var conn = px.accept(fd);
     print("accepted!\n");
     for (val in conn)
         print(val+": "+conn[val]+"\n");
     var newconn = conn.sock;
-    event.make_socket_nonblocking(newconn);
-    event.add(newconn,event.EV_WRITE,{obj:'dummy'},maywrite);
+    ev.make_socket_nonblocking(newconn);
+    ev.event_add(newconn,ev.EV_WRITE,{obj:'dummy'},maywrite);
 }
 
-function mayread (fd,ev) {
-    var rdbf = new event.Buffer();
-    rdbf.read(fd,1024);
-    var str = rdbf.readln();
+function mayread (fd,evtype) {
+    var rdbf = ev.buffer_new();
+    ev.buffer_read(rdbf,fd,1024);
+    var str = ev.buffer_readln(rdbf);
     print("read: '"+str+"'\n");
     if (str==secret_text)
         print("SUCCESS!\n");
     else
         print("FAILURE: "+secret_text+"!="+str+"\n");
-    net.close(fd);
+    px.close(fd);
 }
 
 var sock;
 try {
-    sock = net.socket_tcp();
-    event.make_socket_nonblocking(sock);
-    //net.connect(sock,{addr:"127.0.0.1",port:80});
-    net.bind(sock,{addr:"127.0.0.1",port:7001});
+    sock = px.socket_tcp();
+    ev.make_socket_nonblocking(sock);
+    px.bind(sock,{addr:"127.0.0.1",port:7001});
     print("bound!\n");
-    net.listen(sock);
-    event.add(sock,event.EV_READ,{obj:'dummy'},mayaccept);
+    px.listen(sock);
+    ev.event_add(sock,ev.EV_READ,{obj:'dummy'},mayaccept);
     print("yep,added\n");
-    var client = net.socket_tcp();
-    event.make_socket_nonblocking(client);
-    try{ net.connect(client,{addr:"127.0.0.1",port:7001}); } catch (oip) {}
+    var client = px.socket_tcp();
+    ev.make_socket_nonblocking(client);
+    try{ px.connect(client,{addr:"127.0.0.1",port:7001}); } 
+    catch (oip) {print("expected err: "+oip+"\n");}
     print("connected\n");
-    event.add(client,event.EV_READ,{obj:'dummy'},mayread);
-    event.loop(10000);
+    ev.event_add(client,ev.EV_READ,{obj:'dummy'},mayread);
+    ev.event_loop(10000);
 } catch (error) {
     print("error in network code: "+error);
 }
 
-net.close(sock);
+px.close(sock);
 
-/*function mayread (fdes, ev) {
-    var r = new ev.Buffer();
-    r.read(fdes);
-    var eleven = r.pull8();
-    print("now, eleven == "+eleven+"\n");
-}
-
-var fd = posix.open("test",posix.O_RDONLY|posix.O_NONBLOCK);
-ev.add(fd,ev.EV_READ,null,mayread);
-ev.loop(100);
-posix.close(fd);*/
