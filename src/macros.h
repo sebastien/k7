@@ -111,6 +111,9 @@ using namespace v8;
 #define RETURN_INT(i)           return handlescope.Close(Integer::New(i))
 #define RETURN_WRAPPED(ptr)     return v8::External::New(ptr)
 #define RETURN_UNDEF            return JS_undefined
+#define RETURN_WATCHED(ptr,f)   Persistent<External> watcher = Persistent<External>::New(External::New(ptr)); \
+                                watcher.MakeWeak(ptr, f);   \
+                                return watcher;
 
 // ----------------------------------------------------------------------------
 //

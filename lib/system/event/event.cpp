@@ -18,15 +18,7 @@ void evbuf_free(Persistent<Value> watcher, void* parameter) {
 
 FUNCTION(evbuf_new) {
     evbuffer* buf = evbuffer_new();
-    Handle<External> ext(External::New(buf));
-    Persistent<External> watcher = Persistent<External>::New(ext);
-    watcher.MakeWeak(buf, evbuf_free);
-    RETURN_SCOPED(ext);
-} END
-
-FUNCTION(evbuf_destructor) {
-    GET_INTERNAL(evbuffer*,buf);
-    evbuffer_free(buf);
+    RETURN_WATCHED(buf,evbuf_free);
 } END
 
 FUNCTION(evbuf_add8,PWRAP(evbuffer,buf),PINT(i)) {
