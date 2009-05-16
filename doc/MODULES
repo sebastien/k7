@@ -1,0 +1,15 @@
+== K7
+== Writing Modules
+
+Here are simple things to do:
+
+1) Look at docs/API.yaml and think about where your module fits
+2) Create your module directory like 'lib/full/name/of/MODULE'
+3) Configure your editor to use tabs, with indentation size of 4
+4) Create your 'MODULE.cpp' file using an existing module template
+5) Create your 'MODULE.js' file if you have a JavaScript part to your module
+6) Register your module in 'src/k7.cpp'
+7) Updated the Makefile to add compilation of your module
+
+To ease the development, have a look at other modules, read the 'README' document
+and of course, have a look at the 'macros.h'.

@@ -9,6 +9,8 @@
 #include <event2/util.h>
 
 using namespace v8;
+#define MODULE_NAME   "system.event"
+#define MODULE_STATIC  system_event
 
 
 void evbuf_free(Persistent<Value> watcher, void* parameter) {
@@ -94,9 +96,9 @@ FUNCTION(evbuf_write,PWRAP(evbuffer,buf),PINT(file_des)) {
 } END
 
 struct _ev_memo_t {
-    event e;
-    Persistent<Object> obj;
-    Persistent<Function> func;
+	event e;
+	Persistent<Object> obj;
+	Persistent<Function> func;
 };
 
 event_base * _base = NULL;
@@ -146,7 +148,7 @@ FUNCTION(le_make_socket_nonblocking,PINT(sock)) {
     RETURN_INT(ret);
 } END
 
-MODULE(system_event,"system.event")
+MODULE {
     BIND("buffer_new",evbuf_new);
     //DESTRUCTOR(evbuf_destructor)
     BIND("buffer_add8",evbuf_add8);
@@ -171,7 +173,6 @@ MODULE(system_event,"system.event")
     struct event_config *cfg = event_config_new();
     event_config_require_features(cfg,EV_FEATURE_FDS);
     _base = event_base_new_with_config(cfg);
-END_MODULE
+} END_MODULE
 
 #endif
-

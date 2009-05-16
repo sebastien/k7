@@ -13,19 +13,19 @@
 | Compile the "script" string to bytecode
 @end
 
-@function runScript script [bytecode]
+@function runScript script, bytecode=Undefined
 | Just like the traditional eval function, but it can take a second
 | argument to aid in compilation and speed things up a bit.
 @end
 
-@function defineProperty object key descriptor
+@function defineProperty object, key, descriptor
 | Define a property on the object with the enumerable, writable, and
 | deletable fields set as in the descriptor object.
 | Very similar to the proposal for ECMAScript 3.1 Object.defineProperty,
 | this will hopefully be made obsolete soon.
 @end
 
-@function getPropertyDefinition object property
+@function getPropertyDefinition object, property
 | Return a property descriptor object for the property specified.
 @end
 

@@ -5,7 +5,7 @@
 //                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
 // -----------------------------------------------------------------------------
 // Creation date     : 13-Dec-2008
-// Last modification : 19-Mar-2009
+// Last modification : 08-May-2009
 // -----------------------------------------------------------------------------
 
 #ifdef WITH_FCGI
@@ -13,32 +13,10 @@
 #include <k7.h>
 
 #include <fcgiapp.h>
+#include <string.h>
 
-using namespace v8;
-
-// ----------------------------------------------------------------------------
-//
-// API
-//
-// ----------------------------------------------------------------------------
-
-/*
-START_API
-@module net.http.server.fcgi
-
-@class FCGI
-
-	@constructor
-
-	@abstract @method accept
-
-	@abstract @method putstr
-
-	@abstract @method free
-
-@end
-END_API
-*/
+#define MODULE_NAME   "net.http.server.fcgi"
+#define MODULE_STATIC net_http_server_fcgi
 
 // ----------------------------------------------------------------------------
 //
@@ -61,6 +39,7 @@ inline static FCGX_Request *_get_handle(const v8::Arguments &args) {
 // ----------------------------------------------------------------------------
 
 FUNCTION(FCGI_constructor)
+{
 	ARG_COUNT(0);
 	if (FCGX_Init() != 0) {
 		return v8::ThrowException(v8::String::New("failed FCGI_Init()"));
@@ -70,12 +49,15 @@ FUNCTION(FCGI_constructor)
 	
 	args.This()->SetInternalField(0, External::New((void*)req));
 	return args.This();
+}
 END
 
 FUNCTION(FCGI_accept)
+{
 	ARG_COUNT(0);
 	FCGX_Request *req = _get_handle(args);
 	return Int32::New( FCGX_Accept_r(req) );
+}
 END
 
 FUNCTION(FCGI_getEnv)
@@ -139,16 +121,17 @@ FUNCTION(FCGI_getRawRequest)
 	ret = JS_str(rawReq);
 	delete[] rawReq;
 	return ret;
-	
 }
 END
 
 FUNCTION(FCGI_putstr)
+{
 	ARG_COUNT(1);
 	ARG_str(str, 0);
 	FCGX_Request *req = _get_handle(args);
 	FCGX_PutStr(*str, str.length(), req->out);
 	return Undefined();
+}
 END
 
 FUNCTION(FCGI_errorLog)
@@ -162,14 +145,18 @@ FUNCTION(FCGI_errorLog)
 END
 
 FUNCTION(FCGI_free)
+{
 	ARG_COUNT(0);
 	FCGX_Request *req = _get_handle(args);
 	FCGX_Free(req, 1);
 	return Undefined();
+}
 END
 
-MODULE(net_http_server_fcgi,"net.http.server.fcgi")
+MODULE
+{
 	CLASS("FCGI")
+	{
 		INTERNAL_FIELDS(1);
 		CONSTRUCTOR(FCGI_constructor);
 		METHOD("accept", FCGI_accept);
@@ -178,7 +165,9 @@ MODULE(net_http_server_fcgi,"net.http.server.fcgi")
 		METHOD("free",   FCGI_free);
 		METHOD("getEnv", FCGI_getEnv);
 		METHOD("getRawRequest", FCGI_getRawRequest);
+	}
 	END_CLASS
+}
 END_MODULE
 
 #endif

@@ -1,4 +1,10 @@
-# This document contains the API specification for the K7 JavaScript environment.
+# == K7 API Specification
+# -- Version: 2009-04-15
+# 
+# This document contains the API specification (draft) for the K7 JavaScript environment. It's
+# a global tree definition of the modules, classes, functions and values that are part of the
+# K7 environment.
+#
 # The environments conforms to a naming convention based on the existing
 # conventions used in ECMAScript, which are based on the Java naming conventions.
 #
@@ -13,13 +19,20 @@
 # - classes:    CamelCase ("Array","SortedArray")
 # - methods:    camelCase ("Array.length", "SortedArray.sortBy")
 #
+# When binding standard libraries (as in ISO-standard, like POSIX) just keep the
+# exact same name, to make it easy for people familiar with the low-level API to
+# use the exact same function. Pure JavaScript wrappers can be written to make
+# the API more consistent with JavaScript naming conventions.
+#
 # When writing new modules, they should fit in the following tree of modules.
 core:
     modules:
+        PATH
+        ensure
         load
+        unload
         get
         has
-        PATH
     concurrency:pure JS
         Channel
         Future
@@ -28,7 +41,24 @@ core:
         Mutex
         Semaphore
         RendezVous
+        libtask:
+            yield
+            exit
+            current
+            
 system:
+    engine:
+        getState
+        setState
+        snapshot
+        unsnapshot
+    shell:
+        stdin
+        stdout
+        argv
+        env
+        exec
+        eval
     posix:
         fopen
         fread
@@ -45,7 +75,7 @@ system:
             stat
 ---
 db:
-    tokyocabinet
+    tokyo
     bsddb
     mysql
 ---
@@ -55,6 +85,9 @@ net:
             fastcgi:
         client:
             curl:
+---
+lang:
+    python
 ---
 data:
     structures:

@@ -2,34 +2,75 @@
 // Project           : K7 - Standard Library for V8
 // -----------------------------------------------------------------------------
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
+//                     Victor Grishchenko
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 19-Mar-2009
+// Last modification : 11-May-2009
 // ----------------------------------------------------------------------------
 
-#include "macros.h"
+#include "k7.h"
+
+// FIXME: I dont' know if this is Linux only... probably !
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <fcntl.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>
-#include <fcntl.h>
-#include <string>
+#include <string.h>
+#include <unistd.h>
 
-// TODO: Add proper error handling
-// #define MODULE "system.posix"
-using namespace v8;
+
+
+#define MODULE_NAME   "system.posix"
+#define MODULE_STATIC  system_posix
+
+int obj2addr (Handle<Object> obj, struct sockaddr_in* addr) {
+	HandleScope scope;
+	String::AsciiValue a (obj->Get(JS_str("addr")));
+	Handle<Value> p = obj->Get(JS_str("port"));
+	memset(addr,0,sizeof(struct sockaddr_in));
+	if (1!=inet_pton(AF_INET,*a,&(addr->sin_addr.s_addr)))
+		return -1;
+	if (!p->IsInt32())
+		return -2;
+	addr->sin_port = htons((uint16_t)p->Uint32Value());
+	addr->sin_family = AF_INET;
+	return 0;
+}
+
+Handle<Object> addr2obj (struct sockaddr_in* addr) {
+	HandleScope scope;
+	Handle<Object> obj(Object::New());
+	obj->Set(JS_str("port"),JS_int(ntohs(addr->sin_port)));
+	char str[32];
+	inet_ntop(AF_INET,&(addr->sin_addr),str,sizeof(sockaddr_in));
+	obj->Set(JS_str("addr"),String::New(str));
+	return scope.Close(obj);
+}
 
 OBJECT(posix_FILE,1,FILE* file)
+{
 	INTERNAL(0,file);
 	return self;
+}
 END
 
 FUNCTION(posix_time)
+{
 	ARG_COUNT(0)
 	return JS_int(time(NULL));
+}
 END
 
 FUNCTION(posix_fopen)
+{
 	ARG_COUNT(2)
 	ARG_utf8(path,0);
 	ARG_utf8(mode,1);
@@ -37,16 +78,20 @@ FUNCTION(posix_fopen)
 	if (fd == NULL)
 		return JS_null;
 	return posix_FILE(fd);
+}
 END
 
 FUNCTION(posix_fclose)
+{
 	ARG_COUNT(1);
 	ARG_obj(fileObj,0);
 	EXTERNAL(FILE*,file,fileObj,0);
 	return JS_int(fclose(file));
+}
 END
 
 FUNCTION(posix_popen)
+{
 	ARG_COUNT(2)
 	ARG_utf8(path,0);
 	ARG_utf8(type,1);
@@ -54,31 +99,39 @@ FUNCTION(posix_popen)
 	if (fd == NULL)
 		return JS_null;
 	return posix_FILE(fd);
+}
 END
 
 FUNCTION(posix_pclose)
+{
 	ARG_COUNT(1);
 	ARG_obj(fileObj,0);
 	EXTERNAL(FILE*,file,fileObj,0);
 	return JS_int(pclose(file));
+}
 END
 
 FUNCTION(posix_system)
+{
 	ARG_COUNT(1);
 	ARG_utf8(command,0);
 	return JS_int(system(*command));
+}
 END
 
 FUNCTION(posix_fwrite)
+{
 	ARG_utf8(data,0);
 	ARG_int(size,1);
 	ARG_int(nmemb,2);
 	ARG_obj(fileObj,3);
 	EXTERNAL(FILE*,file,fileObj,0);
 	return JS_int(fwrite(*data,size,nmemb,file));
+}
 END
 
 FUNCTION(posix_fread)
+{
 	ARG_COUNT(3);
 	ARG_int(size,0);
 	ARG_int(nmemb,1);
@@ -92,6 +145,7 @@ FUNCTION(posix_fread)
 	v8::Handle<v8::String> strbuf = JS_str2(buf, read);
 	delete [] buf;
 	return strbuf;
+}
 END
 
 FUNCTION(posix_feof)
@@ -103,7 +157,9 @@ FUNCTION(posix_feof)
 END
 	
 FUNCTION(posix_readfile)
+{
 	STUB
+}
 END
 
 FUNCTION(posix_writefile)
@@ -132,8 +188,10 @@ END
 // https://computing.llnl.gov/tutorials/pthreads/
 
 OBJECT(posix_PTHREAD,1,pthread_t* thread)
+{
 	INTERNAL(0,thread)
 	return self;
+}
 END
 
 // NOTE: This is WIP code that will be moved to a "task" module using libtask API
@@ -154,6 +212,7 @@ void* posix_pthread_create_callback(void* context) {
 }
 
 FUNCTION(posix_pthread_create)
+{
 	ARG_COUNT(2);
 	//Handle<Function> callback = Handle<Function>::Cast(args[(0)]);
 	ARG_fn(callback,0);
@@ -170,27 +229,97 @@ FUNCTION(posix_pthread_create)
 	//pthread_create(thread, NULL, posix_pthread_create_callback, (void*)*result);
 	posix_pthread_create_callback((void*)*result);
 	return result;
+}
 END
 
 FUNCTION(posix_open)
-    ARG_COUNT(2);
-    ARG_str(name,0);
-    ARG_int(mode,1);
-    int fd = open(*name,mode,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    if (fd<0)
-        return ThrowException(String::New(strerror(errno)));
-    else
-        return Integer::New(fd);
+{
+	ARG_COUNT(2);
+	ARG_str(name,0);
+	ARG_int(mode,1);
+	int fd = open(*name,mode,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+	if (fd<0) {
+		return ThrowException(String::New(strerror(errno)));
+	} else {
+		return Integer::New(fd);
+	}
+}
 END
 
 FUNCTION(posix_close)
-    ARG_COUNT(1);
-    ARG_int(fd,0);
-    close(fd);
-    return Undefined();
+{
+	ARG_COUNT(1);
+	ARG_int(fd,0);
+	close(fd);
+	return JS_undefined;
+}
 END
 
-MODULE(system_posix,"system.posix")
+// FIXME: Rewrite it so that it follows more closely the POSIX API, providing
+// default values if necessary.
+FUNCTION(posix_socket_tcp)
+{
+	ARG_COUNT(0);
+	int sock = socket(AF_INET,SOCK_STREAM,0);
+	return JS_int(sock);
+}
+END
+
+FUNCTION(posix_bind)
+{
+	ARG_COUNT(2);
+	ARG_int(sock,0);
+	ARG_obj(ip,1);
+	struct sockaddr_in addr;
+	if (0!=obj2addr(ip,&addr))
+		JS_ERROR("invalid IP address");
+	if (0!=bind(sock,(struct sockaddr*)&addr,sizeof addr)) 
+		JS_ERROR(strerror(errno));
+	return Undefined();
+}
+END
+
+FUNCTION(posix_listen)
+{
+	ARG_COUNT(1);
+	ARG_int(sock,0);
+	if (listen(sock,8)==-1) 
+		JS_ERROR(strerror(errno));
+	return Undefined();
+}
+END
+
+FUNCTION(posix_accept)
+{
+	ARG_COUNT(1);
+	ARG_int(sock,0);
+	struct sockaddr_in addr;
+	socklen_t len;
+	int newsock = accept(sock,(struct sockaddr*)&addr,&len);
+	if (-1==newsock)
+		JS_ERROR(strerror(errno));
+	Handle<Object> addrobj = addr2obj(&addr);
+	addrobj->Set(JS_str("sock"),JS_int(newsock));
+	return addrobj;
+}
+END
+
+FUNCTION(posix_connect)
+{
+	ARG_COUNT(2);
+	ARG_int(sock,0);
+	ARG_obj(ip,1);
+	struct sockaddr_in addr;
+	if (0!=obj2addr(ip,&addr))
+		JS_ERROR("invalid IP address");
+	if (0!=connect(sock,(struct sockaddr*)&addr,sizeof addr)) 
+		JS_ERROR(strerror(errno));
+	return Undefined();
+}
+END
+
+
+MODULE
 	// FIXME: When I set the module 'time' slot to a string, accessing the slot
 	// from JavaScript works, but when I BIND it to the posix_time function, the
 	// JavaScript returns undefined. Even worse, the next BIND has no effect.
@@ -206,15 +335,20 @@ MODULE(system_posix,"system.posix")
 	BIND("popen",     posix_popen);
 	BIND("pclose",    posix_pclose);
 	BIND("system",    posix_system);
-	//BIND("pthread_create",  posix_pthread_create);
-    BIND("open",posix_open);
-    BIND("close",posix_close);
-    SET_int("O_RDWR",O_RDWR);
-    SET_int("O_RDONLY",O_RDONLY);
-    SET_int("O_WRONLY",O_WRONLY);
-    SET_int("O_NONBLOCK",O_NONBLOCK);
-    SET_int("O_CREAT",O_CREAT);
-    SET_int("O_TRUNC",O_TRUNC);
+	BIND("open",      posix_open);
+	BIND("close",     posix_close);
+	BIND("bind",      posix_bind);
+	BIND("listen",    posix_listen);
+	BIND("accept",    posix_accept);
+	BIND("connect",   posix_connect);
+	// FIXME: Rename this to socket once the FUNCTION is updated
+	BIND("socketTCP", posix_socket_tcp);
+	SET_int("O_RDWR",    O_RDWR);
+	SET_int("O_RDONLY",  O_RDONLY);
+	SET_int("O_WRONLY",  O_WRONLY);
+	SET_int("O_NONBLOCK",O_NONBLOCK);
+	SET_int("O_CREAT",   O_CREAT);
+	SET_int("O_TRUNC",   O_TRUNC);
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet

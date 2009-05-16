@@ -5,12 +5,12 @@
 //                   : Tokuhiro Matsuno                    <tokuhirom@gmail.com>
 // -----------------------------------------------------------------------------
 // Creation date     : 13-Dec-2008
-// Last modification : 31-Mar-2009
+// Last modification : 08-May-2009
 // -----------------------------------------------------------------------------
 
 #ifdef WITH_CURL
 
-#include <k7.h>
+#include "k7.h"
 
 #include <curl/curl.h>
 #include <cstdio>
@@ -21,20 +21,8 @@
 
 using namespace v8;
 
-// ----------------------------------------------------------------------------
-//
-// API
-//
-// ----------------------------------------------------------------------------
-
-/*
-START_API
-@module net.http.server.curl
-
-@function fetch
-| Returns an object with 'status', 'headers', 'charset' and 'response' properties.
-END_API
-*/
+#define MODULE_NAME   "net.http.client.curl"
+#define MODULE_STATIC  net_http_client_curl
 
 // ----------------------------------------------------------------------------
 //
@@ -113,9 +101,9 @@ again:
 
 // Special thanks to the mcalhoun on MacPorts for finding this one.
 // http://trac.macports.org/ticket/18258#comment:35
-// libiconv is a mess. For some platforms/version the prototype of inbuf is                                                                                                                               
-// "const char **", for others it is "char **". C++ requires the proper cast to                                                                                                                           
-// avoid a compile error, that is were the CASTNEEDED is for.                                                                                                                                             
+// libiconv is a mess. For some platforms/version the prototype of inbuf is
+// "const char **", for others it is "char **". C++ requires the proper cast to
+// avoid a compile error, that is were the CASTNEEDED is for
 #if ((defined(_LIBICONV_VERSION) && (_LIBICONV_VERSION>=0x0109) && \
       !((defined(_OS_MAC_) || defined(Q_OS_MACX) )&& (_LIBICONV_VERSION==0x010B))) \
     || defined(_OS_SOLARIS_) \
@@ -199,6 +187,7 @@ out:
 
 // TODO: Add an asynchronous variant that returns a future
 FUNCTION(fetchURL)
+{
 	ARG_COUNT(1)
 	ARG_str(url,0)
 
@@ -263,6 +252,7 @@ FUNCTION(fetchURL)
 	}
 	return res;
 }
+END
 
 // ----------------------------------------------------------------------------
 //
@@ -270,9 +260,11 @@ FUNCTION(fetchURL)
 //
 // ----------------------------------------------------------------------------
 
-MODULE(net_http_client_curl,"net.http.client.curl")
+MODULE
+{
 	BIND("fetchURL",   fetchURL);
 	SET_str("VERSION", curl_version());
+}
 END_MODULE
 
 #endif

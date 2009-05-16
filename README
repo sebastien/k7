@@ -36,7 +36,7 @@ extensions:
     allows to keep the extensions simple, make maintenance and usage easier.
 
   - Use JavaScript for objects: prefer writing pure-JavaScript modules that take
-    advantage of extension modules rather than putting everything in the
+    advantage of extension modules rather than putting everything in the C++
     extension. For example, a module providing a 'File' object should be written
     in pure JavaScript, and take advantage of the 'posix' API for the actual
     I/O.
@@ -48,7 +48,8 @@ extensions:
 The k7 source code is separated in two main folders:
 
   - 'src' which contains the k7 main source code, which is basically the
-    interpeter, the module system and the macros.
+    interpreter enhanced with a couple of simple primitives and the
+    macros.
 
   - 'lib' which contains the JavaScript and extension modules source code, and
     which is laid out according to the modules hierarchy. For instance, the
@@ -61,6 +62,7 @@ To get started, you'll need a POSIX environment with a compiler, and
 >   make
 
 Should be sufficient to create the 'k7' interpreter, compiled with extensions.
+V8 will be downloaded automatically to your 'deps/v8' directory.
 
 --
 [V8]          V8 VM, <http://code.google.com/p/v8/> 
