@@ -1,3 +1,13 @@
+// ----------------------------------------------------------------------------
+// Project		   : K7 - Standard Library for V8
+//                   libevent bindings
+// -----------------------------------------------------------------------------
+// Author           :  Victor Grishchenko       <victor.grishchenko@gmail.com>
+// ----------------------------------------------------------------------------
+// Creation date     : 8-May-2009
+// Last modification : 16-May-2009
+// ----------------------------------------------------------------------------
+
 #ifdef WITH_EVENT
 #include "macros.h"
 #include <stdint.h>

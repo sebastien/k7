@@ -1,7 +1,8 @@
 // ----------------------------------------------------------------------------
 // Project		   : K7 - Standard Library for V8
 // -----------------------------------------------------------------------------
-// Author			: Sebastien Pierre				   <sebastien@type-z.org>
+// Authors			  Sebastien Pierre				   <sebastien@type-z.org>
+//                    Victor Grishchenko       <victor.grishchenko@gmail.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
 // Last modification : 16-May-2009
