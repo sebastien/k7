@@ -255,12 +255,9 @@ FUNCTION(posix_close)
 }
 END
 
-// FIXME: Rewrite it so that it follows more closely the POSIX API, providing
-// default values if necessary.
-FUNCTION(posix_socket_tcp)
+FUNCTION(posix_socket,PINT(domain),PINT(type))
 {
-	ARG_COUNT(0);
-	int sock = socket(AF_INET,SOCK_STREAM,0);
+	int sock = socket(domain,type,0);
 	return JS_int(sock);
 }
 END
@@ -341,14 +338,15 @@ MODULE
 	BIND("listen",    posix_listen);
 	BIND("accept",    posix_accept);
 	BIND("connect",   posix_connect);
-	// FIXME: Rename this to socket once the FUNCTION is updated
-	BIND("socketTCP", posix_socket_tcp);
+	BIND("socket",    posix_socket);
 	SET_int("O_RDWR",    O_RDWR);
 	SET_int("O_RDONLY",  O_RDONLY);
 	SET_int("O_WRONLY",  O_WRONLY);
 	SET_int("O_NONBLOCK",O_NONBLOCK);
 	SET_int("O_CREAT",   O_CREAT);
 	SET_int("O_TRUNC",   O_TRUNC);
+    SET_int("AF_INET", AF_INET);
+    SET_int("SOCK_STREAM", SOCK_STREAM);
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet

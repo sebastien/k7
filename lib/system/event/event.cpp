@@ -109,8 +109,10 @@ void _ev_cb (evutil_socket_t fd, short what, void *arg) {
     Handle<Value> arr [] = {JS_int(fd),JS_int(what)};
     TryCatch tc;
     Handle<Value> ret = memo->func->Call(memo->obj,2,arr);
-    if (tc.HasCaught())
-        ReportException(&tc);
+    if (tc.HasCaught()) {
+        v8::String::AsciiValue exception(tc.Exception());
+        fprintf(stderr,"Uncaught exception: %s\n",*exception);
+    }
     if (tc.HasCaught() || !ret->IsBoolean() || !ret->ToBoolean()->Value()) {
         event_del(&(memo->e));
         memo->obj.Dispose();

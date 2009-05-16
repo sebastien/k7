@@ -1,5 +1,6 @@
 var ev = system.event;
-var px = net.posix;
+var px = system.posix;
+var print = system.k7.shell.print;
 
 var secret_text = "Hello "+Math.random();
 
@@ -35,14 +36,14 @@ function mayread (fd,evtype) {
 
 var sock;
 try {
-    sock = px.socket_tcp();
+    sock = px.socket(px.AF_INET,px.SOCK_STREAM);
     ev.make_socket_nonblocking(sock);
     px.bind(sock,{addr:"127.0.0.1",port:7001});
     print("bound!\n");
     px.listen(sock);
     ev.event_add(sock,ev.EV_READ,{obj:'dummy'},mayaccept);
     print("yep,added\n");
-    var client = px.socket_tcp();
+    var client = px.socket(px.AF_INET,px.SOCK_STREAM);
     ev.make_socket_nonblocking(client);
     try{ px.connect(client,{addr:"127.0.0.1",port:7001}); } 
     catch (oip) {print("expected err: "+oip+"\n");}
