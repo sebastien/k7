@@ -8,10 +8,12 @@
 // ----------------------------------------------------------------------------
 
 #ifdef WITH_EVENT
-#include "macros.h"
-#include <stdint.h>
-#include <arpa/inet.h>
+#include "k7.h"
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
+
 #include <event2/event.h>
 #include <event2/buffer.h>
 #include <event2/event_struct.h>

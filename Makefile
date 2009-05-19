@@ -27,34 +27,45 @@ SOBJECTS              =$(MODULES:lib/%.cpp=build/%.o)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 
 # Modules
-HAS_CURL              =$(shell locate include/curl/curl.h)
-HAS_FCGI              =$(shell locate include/fastcgi.h)
-HAS_EVENT             =$(shell locate include/event2/event.h)
-HAS_LIBTASK           =0
+CURL              =$(shell locate include/curl/curl.h)
+FCGI              =$(shell locate include/fastcgi.h)
+EVENT             =$(shell locate include/event2/event.h)
+LIBTASK           =0
 
 ifeq  ($(PLATFORM),Darwin)
-	BUILD_LIBS        +=-liconv
+	LIB_ICONV          = -liconv
+	BUILD_LIBS        += $(LIB_ICONV)
 endif
-ifneq ($(strip $(HAS_CURL)),)
+ifneq ($(strip $(CURL)),)
 	CPPFLAGS          +=-DWITH_CURL
-	BUILD_LIBS        +=-lcurl
+	LIB_CURL           = -lcurl
+	BUILD_LIBS        += $(LIB_CURL)
 endif
-ifneq ($(strip $(HAS_FCGI)),)
+ifneq ($(strip $(FCGI)),)
 	CPPFLAGS          +=-DWITH_FCGI
-	BUILD_LIBS        +=-lfcgi
+	LIB_FCGI           = -lfcgi
+	BUILD_LIBS        += $(LIB_FCGI)
 endif
 
-ifneq ($(strip $(HAS_EVENT)),)
+ifneq ($(strip $(EVENT)),)
+	# NOTE: We exepect libevent-2.0, which is not widely available,
+	# so people willing to use a specific library .so or .a can redefine
+	# the LIB_EVENT variable
 	CPPFLAGS          +=-DWITH_EVENT
-	BUILD_LIBS        +=-levent
+	LIB_EVENT          = -levent
+	BUILD_LIBS        += $(LIB_EVENT)
 endif
 
-ifeq ($(HAS_LIBTASK),1)
+ifeq ($(LIBTASK),1)
 	CPPFLAGS          += -DWITH_LIBTASK
-	BUILD_BINLIBS     += deps/libtask/libtask.a
+	LIB_TASK           = deps/libtask/libtask.a
+	BUILD_BINLIBS     += $(LIB_TASK)
 endif
 
 .PHONY: options info xinfo
+
+k7: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
+	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
 
 info:
 	@echo "K7 build system"
@@ -76,13 +87,11 @@ xinfo:
 options:
 	@echo "K7 build options"
 	@echo
-	@echo "HAS_CURL    - Enables curl bindings     (default=1, requires curl.h)"
-	@echo "HAS_FCGI    - Enables FCGI bindings     (default=1, requires fastcgi.h)"
-	@echo "HAS_EVENT   - Enables libevent bindings (default=1, requires event2/event.h)"
-	@echo "HAS_LIBTASK - Enables libtask bindings  (default=0)"
+	@echo "CURL    - Enables curl bindings     (default=1, requires curl.h)"
+	@echo "FCGI    - Enables FCGI bindings     (default=1, requires fastcgi.h)"
+	@echo "EVENT   - Enables libevent2 bindings (default=1, requires event2/event.h)"
+	@echo "LIBTASK - Enables libtask bindings  (default=0)"
 
-k7: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
-	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
 
 api: doc/k7-api.html
 	
