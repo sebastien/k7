@@ -172,7 +172,7 @@ v8::Handle<Object> name(__VA_ARGS__) { \
         v8::Handle<v8::FunctionTemplate>  __class__      = v8::FunctionTemplate::New(); \
         v8::Handle<v8::ObjectTemplate>    __object__     = __class__->InstanceTemplate(); \
         v8::Handle<v8::ObjectTemplate>    self           = __object__; \
-        class__->SetClassName(v8::String::New(name)); 
+        __class__->SetClassName(v8::String::New(name)); 
 #define CONSTRUCTOR(c)       __class__->SetCallHandler(c);
 #define DESTRUCTOR(d)        Persistent<Object> _weak_handle = Persistent<Object>::New(__object__); \
                              _weak_handle.MakeWeak(NULL, d);

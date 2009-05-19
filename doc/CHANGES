@@ -1,7 +1,7 @@
 2009-05-11:
 
 	- Added a doc/MODULES file to guide writing new modules
-	- Integreated gritzko's libevent work
+	- Integrated gritzko's libevent work
 
 2009-05-10:
 
