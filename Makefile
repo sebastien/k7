@@ -2,7 +2,7 @@
 # fastcgi.h - libfcgi-dev
 # curl.h    - libcurl*-dev
 PRODUCT               =k7
-VERSION               =`date +'%Y%m%d'`
+VERSION               :=$(shell date +'%Y%m%d')
 
 PLATFORM              =$(shell uname -s)
 CPP                   =g++
