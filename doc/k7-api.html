@@ -49,21 +49,8 @@ pre {
 	margin-left: 380px;
 }
 
-#modules {
-	padding: 0;
-	padding: 1pt;
-	padding-left: 5pt;
-	font-size: 7pt;
-	color: #A0A0A0;
-	background: #404040;
-	border-bottom: 2px solid #f0f0f0;
-}
-
-#modules a {
-	color: white;
-}
-
 #options {
+	display: none;
 	text-align: right;
 }
 
@@ -72,9 +59,10 @@ pre {
 	padding-left: 10px;
 }
 
+#modules,
 #api {
 	display: block;
-	width: 360px;
+	width: 200px;
 	float: left;
 	padding:0;
 	padding-left: 5pt;
@@ -83,7 +71,20 @@ pre {
 	border-right: 1px solid #f0f0f0;
 	overflow: auto;
 	height: 100%;
+}
 
+#api {
+	margin-right: 10pt;
+}
+
+#modules ul {
+	margin: 0;
+	padding: 0;
+}
+
+#modules ul li {
+	list-style-type: none;
+	padding: 0;
 }
 
 #hidden {
@@ -169,17 +170,11 @@ pre {
 }
 
 #sdoc .root, #sdoc .container {
-	padding-left: 10pt;
-	padding-top: 8pt;
 	color: #404040;
-	width: 150px;
-	border-left: 1px solid #f0f0f0;
-	float: left;
 }
 
 #sdoc .container {
 	margin-left: 10pt;
-	display: none;
 }
 
 
@@ -297,7 +292,7 @@ jQuery(document).ready(function(){
 <div id="sdoc">
 <div id='modules'>
 <!-- modules-snip -->
-API : <a href='javascript:documentElement("a");'>system.k7.shell</a> &bull; <a href='javascript:documentElement("d");'>system.engine</a> &bull; <a href='javascript:documentElement("m");'>system.posix</a> &bull; <a href='javascript:documentElement("u");'>net.http.server.curl</a> &bull; <a href='javascript:documentElement("w");'>net.http.server.shttpd</a> &bull; <a href='javascript:documentElement("P");'>net.http.server.fcgi</a> &bull; <a href='javascript:documentElement("V");'>core.concurrency.libtask</a>
+<div class='container'><div class='name'>$TITLE</div><div class='title'>Modules</div><ul class='group'><li><span class='prefix'>M</span><a href='javascript:documentElement("a");'>system.k7.shell</a><li><li><span class='prefix'>M</span><a href='javascript:documentElement("d");'>system.engine</a><li><li><span class='prefix'>M</span><a href='javascript:documentElement("m");'>system.posix</a><li><li><span class='prefix'>M</span><a href='javascript:documentElement("u");'>net.http.server.curl</a><li><li><span class='prefix'>M</span><a href='javascript:documentElement("w");'>net.http.server.shttpd</a><li><li><span class='prefix'>M</span><a href='javascript:documentElement("P");'>net.http.server.fcgi</a><li><li><span class='prefix'>M</span><a href='javascript:documentElement("V");'>core.concurrency.libtask</a><li></ul></div>
 <div id='options'>
 	<label>Show:</label>
 	<input type="checkbox" class="do-togglePrivate"> private
