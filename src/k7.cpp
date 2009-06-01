@@ -5,7 +5,7 @@
 // Author            : Isaac Schulter                            <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 10-May-2009
+// Last modification : 01-Jun-2009
 // ----------------------------------------------------------------------------
 
 #include <v8.h>
@@ -31,8 +31,8 @@
 
 // Imports the symbols from standard libraries that can be found in the
 // "lib" directory of the source tree
-IMPORT(system_k7_modules);
-IMPORT(system_k7_shell);
+IMPORT(system_modules);
+IMPORT(system_shell);
 IMPORT(system_posix);
 IMPORT(system_engine);
 IMPORT(data_formats_json);
@@ -72,11 +72,11 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 	}
 	OBJECT_SET(js_env, "argc", JS_int(argc));
 	OBJECT_SET(js_env, "argv", js_argv);
-	OBJECT_SET(k7::module("system.k7"), "ENV",    js_env);
-	OBJECT_SET(k7::module("system.k7"), "GLOBAL", JS_GLOBAL);
+	OBJECT_SET(k7::module("system"), "ENV",    js_env);
+	OBJECT_SET(k7::module("system"), "GLOBAL", JS_GLOBAL);
 
-	LOAD("system.k7.modules",      system_k7_modules);
-	LOAD("system.k7.shell",        system_k7_shell);
+	LOAD("system.modules",      system_modules);
+	LOAD("system.shell",        system_shell);
 
 	// NOTE: This is no good as it slows down the startup time,
 	// especially when there is pure JavaScript that requires parsing.
@@ -297,7 +297,7 @@ int k7::main (int argc, char **argv, char **env) {
 	Context::Scope context_scope(context);
 
 	k7::setup(context->Global(), argc, argv, env);
-	EXEC("system.k7.shell.command();");
+	EXEC("system.shell.command();");
 
 	return 0;
 }

@@ -1,6 +1,6 @@
 var ev = system.event;
 var px = system.posix;
-var print = system.k7.shell.print;
+var print = system.shell.print;
 
 var secret_text = "Hello "+Math.random();
 

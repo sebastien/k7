@@ -4,13 +4,13 @@
 // Author            : Sebastien Pierre                   <sebastien@type-z.org>
 // ----------------------------------------------------------------------------
 // Creation date     : 08-May-2008
-// Last modification : 11-May-2009
+// Last modification : 01-Jun-2009
 // ----------------------------------------------------------------------------
 
 #include "k7.h"
 
-#define MODULE_NAME   "system.k7.shell"
-#define MODULE_STATIC  system_k7_shell
+#define MODULE_NAME   "system.shell"
+#define MODULE_STATIC  system_shell
 
 // ----------------------------------------------------------------------------
 //

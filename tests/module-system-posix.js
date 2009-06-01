@@ -1,4 +1,4 @@
-var print = system.k7.shell.print
+var print = system.shell.print
 var posix = system.posix
 
 var fd    = posix.fopen("posixtest.txt", "w")

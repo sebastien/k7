@@ -12,8 +12,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MODULE_NAME   "system.k7.modules"
-#define MODULE_STATIC  system_k7_modules
+#define MODULE_NAME   "system.modules"
+#define MODULE_STATIC  system_modules
 
 FUNCTION(module_has)
 /**

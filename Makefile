@@ -29,7 +29,7 @@ INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 # Modules
 CURL              =$(shell locate include/curl/curl.h)
 FCGI              =$(shell locate include/fastcgi.h)
-EVENT             =$(shell locate include/event2/event.h)
+EVENT             =
 LIBTASK           =0
 
 ifeq  ($(PLATFORM),Darwin)

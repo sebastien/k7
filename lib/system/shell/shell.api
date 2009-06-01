@@ -1,0 +1,8 @@
+@module system.shell
+
+@function print args...
+@end
+
+@function printn args...
+@end
+

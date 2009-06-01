@@ -26,7 +26,7 @@ Task 2:9
 */
 
 var libtask = core.concurrency.libtask
-var print   = system.k7.shell.print;
+var print   = system.shell.print;
 
 function task_1 () {
 	for (var i=0;i<10;i++) {
