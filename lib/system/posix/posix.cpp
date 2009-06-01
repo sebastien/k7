@@ -315,6 +315,41 @@ FUNCTION(posix_connect)
 }
 END
 
+FUNCTION(posix_stat,PSTR(path)) {
+
+	// struct stat {
+	//     dev_t     st_dev;     /* ID of device containing file */
+	//     ino_t     st_ino;     /* inode number */
+	//     mode_t    st_mode;    /* protection */
+	//     nlink_t   st_nlink;   /* number of hard links */
+	//     uid_t     st_uid;     /* user ID of owner */
+	//     gid_t     st_gid;     /* group ID of owner */
+	//     dev_t     st_rdev;    /* device ID (if special file) */
+	//     off_t     st_size;    /* total size, in bytes */
+	//     blksize_t st_blksize; /* blocksize for filesystem I/O */
+	//     blkcnt_t  st_blocks;  /* number of blocks allocated */
+	//     time_t    st_atime;   /* time of last access */
+	//     time_t    st_mtime;   /* time of last modification */
+	//     time_t    st_ctime;   /* time of last status change */
+	// };
+
+	struct stat stat_info;
+	// TODO: Check errors
+	if (stat(*path, &stat_info) != -1) {
+		Handle<Object> res = JS_obj();
+		OBJECT_SET(res, "atime", JS_int(stat_info.st_atime));
+		OBJECT_SET(res, "mtime", JS_int(stat_info.st_mtime));
+		OBJECT_SET(res, "ctime", JS_int(stat_info.st_ctime));
+		// FIXME: Probably not ints
+		OBJECT_SET(res, "blksize", JS_int(stat_info.st_blksize));
+		OBJECT_SET(res, "blocks",  JS_int(stat_info.st_blocks));
+		OBJECT_SET(res, "size",    JS_int(stat_info.st_size));
+		return res;
+	} else {
+		JS_ERROR("stat failed");
+	}
+} END
+
 
 MODULE
 	// FIXME: When I set the module 'time' slot to a string, accessing the slot
@@ -331,6 +366,7 @@ MODULE
 	BIND("feof",      posix_feof);
 	BIND("popen",     posix_popen);
 	BIND("pclose",    posix_pclose);
+	BIND("stat",      posix_stat);
 	BIND("system",    posix_system);
 	BIND("open",      posix_open);
 	BIND("close",     posix_close);
