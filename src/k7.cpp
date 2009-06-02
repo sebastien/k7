@@ -115,15 +115,17 @@ void k7::trace (const TryCatch* try_catch) {
 	if (message.IsEmpty()) {
 		// V8 didn't provide any extra information about this error; just
 		// print the exception.
+		fprintf(stderr, "---\n[!] K7: Exception occured:\n");
 		fprintf(stderr, "%s\n", *exception);
 	} else {
 		// Print (filename):(line number): (message).
 		String::Utf8Value filename(message->GetScriptResourceName());
 		int linenum = message->GetLineNumber();
-		fprintf(stderr, "%s:%i: %s\n", *filename, linenum, *exception);
+		fprintf(stderr, "---\n[!] K7: Exception occured in '%s':%i\n", *filename, linenum);
+		fprintf(stderr, "[!] %s\n", *exception);
 		// Print line of source code.
 		String::Utf8Value sourceline(message->GetSourceLine());
-		fprintf(stderr, "%s\n", *sourceline);
+		fprintf(stderr, "[-] %s\n[-] ", *sourceline);
 		// Print wavy underline (GetUnderline is deprecated).
 		int start = message->GetStartColumn();
 		for (int i = 0; i < start; i++) {
@@ -135,6 +137,9 @@ void k7::trace (const TryCatch* try_catch) {
 		}
 		fprintf(stderr, "\n");
 	}
+	fprintf(stderr, "[-] Stack trace {\n");
+	message->PrintCurrentStackTrace(stderr);
+	fprintf(stderr, "}\n");
 }
 
 /**
@@ -196,6 +201,10 @@ Handle<Object> k7::module(const char* fullName) {
 	return k7::module(JS_GLOBAL, fullName, NULL);
 }
 
+FUNCTION(module_toString) {
+	return OBJECT_GET(THIS, "__name__");
+} END
+
 Handle<Object> k7::module(Handle<Object>  parent, const char* moduleName, const char* fullName) {
 
 	// FIXME: I had to disable the HandleScope, as it seems like the created
@@ -233,16 +242,20 @@ Handle<Object> k7::module(Handle<Object>  parent, const char* moduleName, const 
 		// is the module we wanted to ensure, we make sure it has the __module__
 		// property.
 		if (rest == NULL) {
-			if (!module->Has(v8::String::New("__module__"))) {
-				module->Set (v8::String::New("__module__"), v8::String::New(fullName));
+			if (!module->Has(v8::String::New("__name__"))) {
+				module->Set (v8::String::New("__name__"), v8::String::New(fullName));
 			}
 		}
 	} else {
 		// We only set the __module__ slot for the module we are loading.
 		module = Object::New();
 		if (rest == NULL) {
-			module->Set(v8::String::New("__module__"), v8::String::New(fullName));
+			module->Set(v8::String::New("__name__"), v8::String::New(fullName));
 		}
+		Handle<Function> to_string   = v8::FunctionTemplate::New(module_toString)->GetFunction();
+		Handle<String>   to_string_n = JS_str("toString");
+		to_string->SetName(to_string_n);
+		module->Set(to_string_n,to_string);
 		parent->Set(name,module);
 	}
 	free(module_name);
