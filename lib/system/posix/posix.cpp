@@ -337,16 +337,23 @@ FUNCTION(posix_stat,PSTR(path)) {
 	// TODO: Check errors
 	if (stat(*path, &stat_info) != -1) {
 		Handle<Object> res = JS_obj();
+		OBJECT_SET(res, "dev",   JS_int(stat_info.st_dev));
+		OBJECT_SET(res, "ino",   JS_int(stat_info.st_ino));
+		OBJECT_SET(res, "mode",  JS_int(stat_info.st_mode));
+		OBJECT_SET(res, "nlink", JS_int(stat_info.st_nlink));
+		OBJECT_SET(res, "uid",   JS_int(stat_info.st_uid));
+		OBJECT_SET(res, "gid",   JS_int(stat_info.st_gid));
+		OBJECT_SET(res, "rdev",  JS_int(stat_info.st_rdev));
+		OBJECT_SET(res, "size",  JS_int(stat_info.st_size));
+		// FIXME: Probably not ints
+		OBJECT_SET(res, "blksize",JS_int(stat_info.st_blksize));
+		OBJECT_SET(res, "blocks", JS_int(stat_info.st_blocks));
 		OBJECT_SET(res, "atime", JS_int(stat_info.st_atime));
 		OBJECT_SET(res, "mtime", JS_int(stat_info.st_mtime));
 		OBJECT_SET(res, "ctime", JS_int(stat_info.st_ctime));
-		// FIXME: Probably not ints
-		OBJECT_SET(res, "blksize", JS_int(stat_info.st_blksize));
-		OBJECT_SET(res, "blocks",  JS_int(stat_info.st_blocks));
-		OBJECT_SET(res, "size",    JS_int(stat_info.st_size));
 		return res;
 	} else {
-		JS_ERROR("stat failed");
+		return JS_undefined;
 	}
 } END
 

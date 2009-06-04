@@ -151,23 +151,37 @@ bool k7::execute (Handle<String> source)                        { return k7::exe
 bool k7::execute (Handle<String> source, Handle<Value> fromFileName) {
 	if (source->Length() == 0) return true;
 	HandleScope handle_scope;
-	TryCatch try_catch;
+	Handle<Value> exception;
+	do {
+		TryCatch try_catch;
 
-	String::Utf8Value utf8_value(source);
+		// FIXME: The following two may degrade performance. Benchmarks needed !
+		try_catch.SetCaptureMessage(true);
+		try_catch.SetVerbose(true);
 
-	Handle<Script> script = Script::Compile(source, fromFileName);
-	if (script.IsEmpty()) {
-		// Print errors that happened during compilation.
-		k7::trace(&try_catch);
+		String::Utf8Value utf8_value(source);
+
+		Handle<Script> script = Script::Compile(source, fromFileName);
+		if (script.IsEmpty()) {
+			// Print errors that happened during compilation.
+			exception = try_catch.Exception();
+			//k7::trace(&try_catch);
+			//return false;
+		}
+		Handle<Value> result = script->Run();
+		if (result.IsEmpty()) {
+			// Print errors that happened during execution.
+			exception = try_catch.Exception();
+			//k7::trace(&try_catch);
+			//return false;
+		}
+	} while (false);
+	if ( !exception.IsEmpty() ) {
+		ThrowException(exception);
 		return false;
+	} else {
+		return true;
 	}
-	Handle<Value> result = script->Run();
-	if (result.IsEmpty()) {
-		// Print errors that happened during execution.
-		k7::trace(&try_catch);
-		return false;
-	}
-	return true;
 }
 
 /**
