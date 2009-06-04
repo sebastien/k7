@@ -5,7 +5,7 @@
 //                     Victor Grishchenko
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 11-May-2009
+// Last modification : 04-Jun-2009
 // ----------------------------------------------------------------------------
 
 #include "k7.h"
@@ -25,8 +25,6 @@
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
-
-
 
 #define MODULE_NAME   "system.posix"
 #define MODULE_STATIC  system_posix
@@ -315,6 +313,26 @@ FUNCTION(posix_connect)
 }
 END
 
+FUNCTION(posix_isDir,PSTR(path)) {
+	struct stat stat_info;
+	// TODO: Check errors
+	if (stat(*path, &stat_info) != -1) {
+		return JS_bool(S_ISDIR(stat_info.st_mode));
+	} else {
+		return JS_bool(0);
+	}
+} END
+
+FUNCTION(posix_isFile,PSTR(path)) {
+	struct stat stat_info;
+	// TODO: Check errors
+	if (stat(*path, &stat_info) != -1) {
+		return JS_bool(S_ISREG(stat_info.st_mode));
+	} else {
+		return JS_bool(0);
+	}
+} END
+
 FUNCTION(posix_stat,PSTR(path)) {
 
 	// struct stat {
@@ -348,9 +366,16 @@ FUNCTION(posix_stat,PSTR(path)) {
 		// FIXME: Probably not ints
 		OBJECT_SET(res, "blksize",JS_int(stat_info.st_blksize));
 		OBJECT_SET(res, "blocks", JS_int(stat_info.st_blocks));
-		OBJECT_SET(res, "atime", JS_int(stat_info.st_atime));
-		OBJECT_SET(res, "mtime", JS_int(stat_info.st_mtime));
-		OBJECT_SET(res, "ctime", JS_int(stat_info.st_ctime));
+		OBJECT_SET(res, "atime",  JS_int(stat_info.st_atime));
+		OBJECT_SET(res, "mtime",  JS_int(stat_info.st_mtime));
+		OBJECT_SET(res, "ctime",  JS_int(stat_info.st_ctime));
+		OBJECT_SET(res, "IS_DIR", JS_bool(S_ISDIR(stat_info.st_mode)));
+		OBJECT_SET(res, "IS_CHR", JS_bool(S_ISCHR(stat_info.st_mode)));
+		OBJECT_SET(res, "IS_BLK", JS_bool(S_ISBLK(stat_info.st_mode)));
+		OBJECT_SET(res, "IS_REG", JS_bool(S_ISREG(stat_info.st_mode)));
+		OBJECT_SET(res, "IS_LNK", JS_bool(S_ISLNK(stat_info.st_mode)));
+		OBJECT_SET(res, "IS_FIFO",JS_bool(S_ISFIFO(stat_info.st_mode)));
+		OBJECT_SET(res, "IS_SOCK",JS_bool(S_ISSOCK(stat_info.st_mode)));
 		return res;
 	} else {
 		return JS_undefined;
@@ -382,6 +407,9 @@ MODULE
 	BIND("accept",    posix_accept);
 	BIND("connect",   posix_connect);
 	BIND("socket",    posix_socket);
+	// Custom extensions
+	BIND("isFile",    posix_isFile);
+	BIND("isDir",     posix_isDir);
 	SET_int("O_RDWR",    O_RDWR);
 	SET_int("O_RDONLY",  O_RDONLY);
 	SET_int("O_WRONLY",  O_WRONLY);
