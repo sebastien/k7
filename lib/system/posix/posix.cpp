@@ -5,7 +5,7 @@
 //                     Victor Grishchenko
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 04-Jun-2009
+// Last modification : 05-Jun-2009
 // ----------------------------------------------------------------------------
 
 #include "k7.h"
@@ -253,6 +253,14 @@ FUNCTION(posix_close)
 }
 END
 
+FUNCTION(posix_unlink,PSTR(path))
+{
+	return JS_int(unlink(*path));
+}
+END
+
+
+
 FUNCTION(posix_socket,PINT(domain),PINT(type))
 {
 	int sock = socket(domain,type,0);
@@ -407,6 +415,7 @@ MODULE
 	BIND("accept",    posix_accept);
 	BIND("connect",   posix_connect);
 	BIND("socket",    posix_socket);
+	BIND("unlink",    posix_unlink);
 	// Custom extensions
 	BIND("isFile",    posix_isFile);
 	BIND("isDir",     posix_isDir);
@@ -416,8 +425,8 @@ MODULE
 	SET_int("O_NONBLOCK",O_NONBLOCK);
 	SET_int("O_CREAT",   O_CREAT);
 	SET_int("O_TRUNC",   O_TRUNC);
-    SET_int("AF_INET", AF_INET);
-    SET_int("SOCK_STREAM", SOCK_STREAM);
+	SET_int("AF_INET", AF_INET);
+	SET_int("SOCK_STREAM", SOCK_STREAM);
 END_MODULE
 
 // EOF - vim: ts=4 sw=4 noet
