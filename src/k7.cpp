@@ -105,6 +105,35 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 //
 // ----------------------------------------------------------------------------
 
+void k7::trace (Handle<Message> message) {
+	if (message.IsEmpty()) {
+		// V8 didn't provide any extra information about this error; just
+		// print the exception.
+		fprintf(stderr, "---\n[!] K7: Exception occured:\n");
+	} else {
+		// Print (filename):(line number): (message).
+		String::Utf8Value filename(message->GetScriptResourceName());
+		int linenum = message->GetLineNumber();
+		fprintf(stderr, "---\n[!] K7: Exception occured in '%s':%i\n", *filename, linenum);
+		// Print line of source code.
+		String::Utf8Value sourceline(message->GetSourceLine());
+		fprintf(stderr, "[-] %s\n[-] ", *sourceline);
+		// Print wavy underline (GetUnderline is deprecated).
+		int start = message->GetStartColumn();
+		for (int i = 0; i < start; i++) {
+			fprintf(stderr, " ");
+		}
+		int end = message->GetEndColumn();
+		for (int i = start; i < end; i++) {
+			fprintf(stderr, "^");
+		}
+		fprintf(stderr, "\n");
+	}
+	fprintf(stderr, "[-] Stack trace {\n");
+	message->PrintCurrentStackTrace(stderr);
+	fprintf(stderr, "}\n");
+}
+
 /**
  *  Reports the given exception on stderr
 */
@@ -152,36 +181,35 @@ bool k7::execute (Handle<String> source, Handle<Value> fromFileName) {
 	if (source->Length() == 0) return true;
 	HandleScope handle_scope;
 	Handle<Value> exception;
-	do {
-		TryCatch try_catch;
+	
+	// FIXME: We disabled this, as we registered a V8 message listener
+	//TryCatch try_catch;
+	//try_catch.SetCaptureMessage(true);
+	//try_catch.SetVerbose(true);
 
-		// FIXME: The following two may degrade performance. Benchmarks needed !
-		try_catch.SetCaptureMessage(true);
-		try_catch.SetVerbose(true);
+	String::Utf8Value utf8_value(source);
 
-		String::Utf8Value utf8_value(source);
-
-		Handle<Script> script = Script::Compile(source, fromFileName);
-		if (script.IsEmpty()) {
-			// Print errors that happened during compilation.
-			exception = try_catch.Exception();
-			//k7::trace(&try_catch);
-			//return false;
-		}
-		Handle<Value> result = script->Run();
-		if (result.IsEmpty()) {
-			// Print errors that happened during execution.
-			exception = try_catch.Exception();
-			//k7::trace(&try_catch);
-			//return false;
-		}
-	} while (false);
-	if ( !exception.IsEmpty() ) {
-		ThrowException(exception);
+	Handle<Script> script = Script::Compile(source, fromFileName);
+	if (script.IsEmpty()) {
+		// FIXME: We disabled this, as we registered a V8 message listener
+		//exception = try_catch.Exception();
+		//k7::trace(&try_catch);
 		return false;
-	} else {
-		return true;
 	}
+	Handle<Value> result = script->Run();
+	if (result.IsEmpty()) {
+		// FIXME: We disabled this, as we registered a V8 message listener
+		//exception = try_catch.Exception();
+		//k7::trace(&try_catch);
+		return false;
+	}
+	//if ( !exception.IsEmpty() ) {
+	//	ThrowException(exception);
+	//	return false;
+	//} else {
+	//	return true;
+	//}
+	return true;
 }
 
 /**
@@ -193,19 +221,20 @@ Handle<Value> k7::eval (Handle<String> source)                        { return k
 Handle<Value> k7::eval (Handle<String> source, Handle<Value> fromFileName) {
 	if (source->Length() == 0) return JS_undefined;
 	HandleScope handle_scope;
-	TryCatch try_catch; 
+	// FIXME: We disabled this, as we registered a V8 message listener
+	//TryCatch try_catch; 
 	String::Utf8Value utf8_value(source);
 
 	Handle<Script> script = Script::Compile(source, fromFileName);
 	if (script.IsEmpty()) {
-		// Print errors that happened during compilation.
-		k7::trace(&try_catch);
+		// FIXME: We disabled this, as we registered a V8 message listener
+		//k7::trace(&try_catch);
 		return JS_undefined;
 	}
 	Handle<Value> result = script->Run();
 	if (result.IsEmpty()) {
-		// Print errors that happened during execution.
-		k7::trace(&try_catch);
+		// FIXME: We disabled this, as we registered a V8 message listener
+		//k7::trace(&try_catch);
 		return JS_undefined;
 	}
 	return result;
@@ -304,12 +333,19 @@ Handle<Value> k7::read(const char* path) {
 	return result;
 }
 
+
+void k7::onMessage (Handle<Message> message, Handle<Value> data) {
+	fprintf(stderr, "[!] Received program failure message\n");
+	trace(message);
+}
+
 /**
  * This is the main function that sets up the K7 environment
 */
 int k7::main (int argc, char **argv, char **env) {
 
 	HandleScope handle_scope;
+	V8::AddMessageListener(k7::onMessage);
 
 	// Create a template for the global object.
 	Handle<ObjectTemplate> global_template = ObjectTemplate::New();
@@ -324,7 +360,9 @@ int k7::main (int argc, char **argv, char **env) {
 	Context::Scope context_scope(context);
 
 	k7::setup(context->Global(), argc, argv, env);
-	EXEC("system.shell.command();");
+	EXEC("system.shell.command();")
+
+	V8::RemoveMessageListeners(k7::onMessage);
 
 	return 0;
 }

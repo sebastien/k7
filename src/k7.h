@@ -21,6 +21,8 @@ namespace k7 {
 
 	void           setup   (Handle<Object> global,int argc, char** argv, char** env);
 	void           trace   (const v8::TryCatch* try_catch);
+	void           trace   (Handle<Message> message);
+	void           onMessage (Handle<Message> message, Handle<Value> data);
 
 	bool           execute (const char* source);
 	bool           execute (const char* source, const char* fromFileName);

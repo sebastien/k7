@@ -127,7 +127,7 @@ deps/libevent:
 	cd deps && wget 'http://www.monkey.org/~provos/libevent-2.0.1-alpha.tar.gz' && tar xzvf libevent-2.0.1-alpha.tar.gz && rm libevent-2.0.1-alpha.tar.gz && mv libevent-2.0.1-alpha libevent
 
 deps/v8/libv8.a: deps/v8
-	cd deps/v8 && scons
+	cd deps/v8 && scons snapshot=on mode=release
 
 deps/libtask/libtask.a: deps/libtask
 	cd deps/libtask && make
