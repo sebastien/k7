@@ -1,6 +1,13 @@
+# K7 Build system (2009-06-12)
+# ============================================================================
+# I know, Make is not the best option, but it seems to work OK so far and the
+# makefile is simple enough so that people can jump in without too much
+# trouble.
+
 # TODO: Check for
 # fastcgi.h - libfcgi-dev
 # curl.h    - libcurl*-dev
+
 PRODUCT               =k7
 VERSION               :=$(shell date +'%Y%m%d')
 
@@ -26,10 +33,13 @@ OBJECTS               =$(SOURCES:src/%.cpp=build/%.o)
 SOBJECTS              =$(MODULES:lib/%.cpp=build/%.o)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 
+# Options
+DEBUG             =0
+
 # Modules
 CURL              =$(shell locate include/curl/curl.h)
 FCGI              =$(shell locate include/fastcgi.h)
-EVENT             =
+LIBEVENT          =1
 LIBTASK           =0
 
 ifeq  ($(PLATFORM),Darwin)
@@ -47,12 +57,12 @@ ifneq ($(strip $(FCGI)),)
 	BUILD_LIBS        += $(LIB_FCGI)
 endif
 
-ifneq ($(strip $(EVENT)),)
+ifeq ($(LIBEVENT),1)
 	# NOTE: We exepect libevent-2.0, which is not widely available,
 	# so people willing to use a specific library .so or .a can redefine
 	# the LIB_EVENT variable
-	CPPFLAGS          +=-DWITH_EVENT
-	LIB_EVENT          = -levent
+	CPPFLAGS          +=-DWITH_LIBEVENT
+	LIB_EVENT          = deps/libevent/.libs/libevent.a
 	BUILD_LIBS        += $(LIB_EVENT)
 endif
 
@@ -60,6 +70,10 @@ ifeq ($(LIBTASK),1)
 	CPPFLAGS          += -DWITH_LIBTASK
 	LIB_TASK           = deps/libtask/libtask.a
 	BUILD_BINLIBS     += $(LIB_TASK)
+endif
+
+ifeq ($(DEBUG),1)
+	CPPFLAGS          += -g
 endif
 
 .PHONY: options info xinfo
@@ -79,19 +93,19 @@ info:
 	@echo "NOTE: build requires svn, scons and python in addition to gcc"
 
 xinfo:
-	@echo "Modules (native): $(MODULES)"
-	@echo "Modules (js):     $(MODULES_JS)"
-	@echo "Sources:          $(SOURCES)"
-	@echo "API:              $(SOURCES_API)"
+	@echo "Options          : CURL=$(CURL) FCGI=$(FCGI) LIBEVENT=$(LIBEVENT) LIBTASK=$(LIBTASK)"
+	@echo "Modules (native) : $(MODULES)"
+	@echo "Modules (js)     : $(MODULES_JS)"
+	@echo "Sources          : $(SOURCES)"
+	@echo "API              : $(SOURCES_API)"
 
 options:
 	@echo "K7 build options"
 	@echo
-	@echo "CURL    - Enables curl bindings     (default=1, requires curl.h)"
-	@echo "FCGI    - Enables FCGI bindings     (default=1, requires fastcgi.h)"
-	@echo "EVENT   - Enables libevent2 bindings (default=1, requires event2/event.h)"
-	@echo "LIBTASK - Enables libtask bindings  (default=0)"
-
+	@echo "CURL     - Enables curl bindings     (default=1, requires curl.h)"
+	@echo "FCGI     - Enables FCGI bindings     (default=1, requires fastcgi.h)"
+	@echo "LIBEVENT - Enables libevent2 bindings (default=1, requires event2/event.h)"
+	@echo "LIBTASK  - Enables libtask bindings  (default=0)"
 
 api: doc/k7-api.html
 	
@@ -117,20 +131,24 @@ deps/v8:
 deps/mongoose:
 	cd deps && svn checkout http://mongoose.googlecode.com/svn/trunk/ mongoose
 
-deps/shttpd/src/libshttpd.a:
-	cd deps/shttpd/src && make unix LIBS="-ldl -lpthread"
-
 deps/shttpd:
 	cd deps && wget 'http://voxel.dl.sourceforge.net/sourceforge/shttpd/shttpd-1.42.tar.gz' && tar fvxz shttpd-1.42.tar.gz && rm shttpd-1.42.tar.gz && mv shttpd-1.42 shttpd
 
 deps/libevent:
 	cd deps && wget 'http://www.monkey.org/~provos/libevent-2.0.1-alpha.tar.gz' && tar xzvf libevent-2.0.1-alpha.tar.gz && rm libevent-2.0.1-alpha.tar.gz && mv libevent-2.0.1-alpha libevent
+	#cd deps && svn co https://levent.svn.sourceforge.net/svnroot/trunk/libevent libevent
 
 deps/v8/libv8.a: deps/v8
 	cd deps/v8 && scons snapshot=on mode=release
 
 deps/libtask/libtask.a: deps/libtask
 	cd deps/libtask && make
+
+deps/libevent/.libs/libevent.a: deps/libevent
+	cd deps/libevent && ./configure && make
+
+deps/shttpd/src/libshttpd.a:
+	cd deps/shttpd/src && make unix LIBS="-ldl -lpthread"
 
 build/%.o: src/%.cpp $(HEADERS) build deps/v8
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
