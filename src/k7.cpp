@@ -46,8 +46,8 @@ IMPORT(net_http_client_curl);
 #ifdef WITH_LIBTASK
 IMPORT(core_concurrency_libtask);
 #endif
-#ifdef WITH_EVENT
-	IMPORT(system_event);
+#ifdef WITH_LIBEVENT
+IMPORT(core_concurrency_libevent);
 #endif 
 
 /**
@@ -91,8 +91,8 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 #ifdef WITH_CURL
 	LOAD("net.http.client.curl",   net_http_client_curl);
 #endif
-#ifdef WITH_EVENT
-	LOAD("system.event",           system_event);
+#ifdef WITH_LIBEVENT
+	LOAD("core.concurrency.libevent",  core_concurrency_libevent);
 #endif
 #ifdef WITH_LIBTASK
 	LOAD("core.concurrency.libtask",   core_concurrency_libtask);
@@ -344,6 +344,7 @@ void k7::onMessage (Handle<Message> message, Handle<Value> data) {
 */
 int k7::main (int argc, char **argv, char **env) {
 
+	Locker thread_locker;
 	HandleScope handle_scope;
 	V8::AddMessageListener(k7::onMessage);
 

@@ -4,10 +4,12 @@
 // Author            : Victor Grishchenko        <victor.grishchenko@gmail.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 08-May-2009
-// Last modification : 19-May-2009
+// Last modification : 12-Jun-2009
 // ----------------------------------------------------------------------------
 
-#ifdef WITH_EVENT
+// FIXME: Libevent uses threads, which is bad !
+//
+#ifdef WITH_LIBEVENT
 #include "k7.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -21,8 +23,8 @@
 
 using namespace v8;
 
-#define MODULE_NAME   "system.event"
-#define MODULE_STATIC  system_event
+#define MODULE_NAME   "core.concurrency.libevent"
+#define MODULE_STATIC  core_concurrency_libevent
 
 void evbuf_free(Persistent<Value> watcher, void* parameter) {
 	evbuffer_free((evbuffer*)parameter);
