@@ -2,15 +2,19 @@
 # This simple script runs Lighttpd with 'fcgi.js' as FastCGI script
 
 cd $(dirname $0)
-k7dir=$(dirname $(dirname $PWD))
-echo "
+K7_DIR=$(dirname $(dirname $PWD))
+echo "\
+K7 HTTP Server Example
+======================
 
-Once it starts up, load
-  http://localhost:8888/applications/fcgi/index.js
-in your web browser for enjoyment of fcgi javascripts!
+ROOT=$K7_DIR
+
+Visit http://localhost:8888/examples/fcgi/index.js
+Benchmark 'ab -c4 -n1000 http://localhost:8888/examples/fcgi/index.js'
 
 "
 
-sed "s|ROOT|$k7dir|g" < $PWD/fcgi.conf > /tmp/k7-fcgi.conf && \
+sed "s|ROOT|$K7_DIR|g" < $PWD/fcgi.conf > /tmp/k7-fcgi.conf && \
 	lighttpd -D -f "/tmp/k7-fcgi.conf"
 
+# EOF

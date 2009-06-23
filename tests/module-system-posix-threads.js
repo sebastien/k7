@@ -1,4 +1,4 @@
-var posix = system.posix
+var posix = load("system.posix")
 
 for (var i=0 ; i<10 ; i++ ) {
 	posix.pthread_create(
