@@ -135,7 +135,7 @@ void _ev_cb (evutil_socket_t fd, short what, void *arg) {
 
 FUNCTION(le_event_add,PINT(fd),PINT(flags),POBJ(cbthis),PFUN(cbfun)) {
 	_ev_memo_t* memo = (_ev_memo_t*)malloc(sizeof(_ev_memo_t));
-	memo->obj = Persistent<Object>::New(cbthis);
+	memo->obj  = Persistent<Object>::New(cbthis);
 	memo->func = Persistent<Function>::New(cbfun);
 	event_assign(&(memo->e),_base,fd,flags|EV_PERSIST,_ev_cb,memo);
 	event_add(&(memo->e),NULL);
@@ -155,7 +155,7 @@ FUNCTION(le_event_loop,PINT(millis)) {
 	delay.tv_sec = millis/1000;
 	delay.tv_usec = (millis%1000)*1000;
 	//event_base_loopexit(_base,&delay);
-	event_base_loop(_base,0);
+	event_base_loop(_base, EVLOOP_ONCE);
 } END
 
 FUNCTION(le_make_socket_nonblocking,PINT(sock)) {
@@ -179,7 +179,7 @@ MODULE {
 	BIND("buffer_readln",evbuf_readln);
 	BIND("event_add",le_event_add);
 	BIND("event_del",le_event_del);
-	//BIND("event_loop",le_event_loop);
+	BIND("event_loop",le_event_loop);
 	BIND("make_socket_nonblocking",le_make_socket_nonblocking);
 	SET_int("EV_TIMEOUT",EV_TIMEOUT);
 	SET_int("EV_READ",EV_READ);
