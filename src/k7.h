@@ -5,7 +5,7 @@
 // Author            : Isaac Schulter.                           <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 09-May-2009
+// Last modification : 23-Jun-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_H__
@@ -37,7 +37,9 @@ namespace k7 {
 	Handle<Value>  read    (const char* path);
 
 	Handle<Object> module  (const char* fullName);
-	Handle<Object> module  (Handle<Object>  parent, const char* moduleName, const char* fullName);
+	Handle<Object> module  (Handle<Object> parent, const char* moduleName, const char* fullName);
+
+	Handle<Value>  dynload (Handle<Object> parent, const char* modulePath);
 
 	int       main    (int argc, char **argv, char **env);
 

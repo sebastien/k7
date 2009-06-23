@@ -184,13 +184,17 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 //
 // ----------------------------------------------------------------------------
 
-#define MODULE\
+#define K7_MODULE_CREATOR_T Handle<Object> (*moduleCreator)(Handle<Object> parent, const char* moduleName, const char* fullName)
+#define MODULE \
     extern "C" v8::Handle<v8::Object> MODULE_STATIC (v8::Handle<v8::Object> __module__) {\
         v8::Handle<v8::Object> self = __module__;
+
 #ifdef AS_PLUGIN
     #define END_MODULE \
     return __module__; } \
-    extern "C" void k7_module_init () {printf("Loading %s\n", MODULE_NAME)}
+    extern "C" Handle<Object> k7_module_init (Handle<Object> global, K7_MODULE_CREATOR_T) { \
+        return MODULE_STATIC(moduleCreator(global, MODULE_NAME, NULL)); \
+    }
 #else
     #define END_MODULE \
     return __module__; }

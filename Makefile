@@ -31,6 +31,8 @@ MODULES_JS            =$(wildcard lib/*.js lib/*/*.js lib/*/*/*.js lib/*/*/*/*.j
 MODULES_JS_H          =$(MODULES_JS:lib/%.js=build/include/%.js.h)
 OBJECTS               =$(SOURCES:src/%.cpp=build/%.o)
 SOBJECTS              =$(MODULES:lib/%.cpp=build/%.o)
+SOBJECTS              =
+PLUGINS               =$(MODULES:lib/%.cpp=build/plugins/%.so)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 
 # Options
@@ -78,8 +80,8 @@ endif
 
 .PHONY: options info xinfo
 
-k7: $(OBJECTS) $(SOBJECTS) $(BUILD_BINLIBS) $(V8_BINARY)
-	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
+k7: $(OBJECTS) $(SOBJECTS) $(PLUGINS) $(BUILD_BINLIBS) $(V8_BINARY)
+	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -rdynamic -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
 
 info:
 	@echo "K7 build system"
@@ -93,11 +95,12 @@ info:
 	@echo "NOTE: build requires svn, scons and python in addition to gcc"
 
 xinfo:
-	@echo "Options          : CURL=$(CURL) FCGI=$(FCGI) LIBEVENT=$(LIBEVENT) LIBTASK=$(LIBTASK)"
-	@echo "Modules (native) : $(MODULES)"
-	@echo "Modules (js)     : $(MODULES_JS)"
-	@echo "Sources          : $(SOURCES)"
-	@echo "API              : $(SOURCES_API)"
+	@echo "Options:\nCURL=$(CURL) FCGI=$(FCGI) LIBEVENT=$(LIBEVENT) LIBTASK=$(LIBTASK)\n"
+	@echo "Modules (native):\n$(MODULES)\n"
+	@echo "Modules (js):\n$(MODULES_JS)\n"
+	@echo "Sources:\n$(SOURCES)\n"
+	@echo "Plugins:\n$(PLUGINS)\n"
+	@echo "API:\n$(SOURCES_API)\n"
 
 options:
 	@echo "K7 build options"
@@ -160,6 +163,16 @@ build/%.o: lib/%.cpp  $(HEADERS)
 	@test -e lib/$*.js && mkdir -p `dirname build/include/$*` || true
 	@test -e lib/$*.js && $(JS2H) lib/$*.js > build/include/$*.js.h || true
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -Ibuild/include/$(dir $*) -c $< -o $@
+
+build/plugins/%.o: lib/%.cpp  $(HEADERS)
+	@mkdir -p `dirname $@` || true
+	@# Using ifeq or sh if did not work... had to resort to this :/
+	@test -e lib/$*.js && mkdir -p `dirname build/include/$*` || true
+	@test -e lib/$*.js && $(JS2H) lib/$*.js > build/include/$*.js.h || true
+	$(CPP) $(CPPFLAGS) $(INCLUDES) -fPIC -DAS_PLUGIN -Ibuild/include/$(dir $*) -c $< -o $@
+
+build/plugins/%.so: build/plugins/%.o
+	$(CPP) $(CPPFLAGS) -shared -o $@ $<
 
 build/include/%.js.h: lib/%.js $(JS2H)
 	@mkdir -p `dirname $@` || true

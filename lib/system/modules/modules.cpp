@@ -7,13 +7,13 @@
 // Last modification : 08-May-2009
 // ----------------------------------------------------------------------------
 
+#define MODULE_NAME   "system.modules"
+#define MODULE_STATIC  system_modules
 #include <k7.h>
 
 #include <stdlib.h>
 #include <time.h>
 
-#define MODULE_NAME   "system.modules"
-#define MODULE_STATIC  system_modules
 
 FUNCTION(module_has)
 /**

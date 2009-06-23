@@ -5,7 +5,7 @@
 // Author            : Isaac Schulter                            <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 01-Jun-2009
+// Last modification : 23-Jun-2009
 // ----------------------------------------------------------------------------
 
 #include <v8.h>
@@ -16,6 +16,8 @@
 #include <string.h>
 #include <string>
 #include <time.h>
+
+#include <dlfcn.h>
 
 // NOTE: You may be surprised that this file does not contain much code. As
 // K7 aims at implementing as much as possible in JavaScript, most of the
@@ -31,6 +33,7 @@
 
 // Imports the symbols from standard libraries that can be found in the
 // "lib" directory of the source tree
+/*
 IMPORT(system_modules);
 IMPORT(system_shell);
 IMPORT(system_posix);
@@ -49,6 +52,7 @@ IMPORT(core_concurrency_libtask);
 #ifdef WITH_LIBEVENT
 IMPORT(core_concurrency_libevent);
 #endif 
+*/
 
 /**
  * Sets up the K7 environment, loading the module system and the shell.
@@ -75,6 +79,10 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 	OBJECT_SET(k7::module("system"), "ENV",    js_env);
 	OBJECT_SET(k7::module("system"), "GLOBAL", JS_GLOBAL);
 
+	k7::dynload(global, "build/plugins/system/modules/modules.so");
+	k7::dynload(global, "build/plugins/system/shell/shell.so");
+
+/*
 	LOAD("system.modules",      system_modules);
 	LOAD("system.shell",        system_shell);
 
@@ -97,6 +105,7 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 #ifdef WITH_LIBTASK
 	LOAD("core.concurrency.libtask",   core_concurrency_libtask);
 #endif
+*/
 }
 
 // ----------------------------------------------------------------------------
@@ -311,6 +320,23 @@ Handle<Object> k7::module(Handle<Object>  parent, const char* moduleName, const 
 	}
 }
 
+Handle<Value> k7::dynload (Handle<Object> parent, const char* modulePath) {
+	void* k7_plugin;
+	Handle<Object> (*init_function)(Handle<Object> global, K7_MODULE_CREATOR_T) = NULL;
+	k7_plugin = dlopen(modulePath, RTLD_NOW);
+	if (k7_plugin == NULL) {
+		fprintf(stderr, "[!] K7: Cannot load plugin '%s':%s\n", modulePath, dlerror());
+	} else {
+		init_function = (Handle<Object> (*)(Handle<Object> g, K7_MODULE_CREATOR_T)) dlsym(k7_plugin, "k7_module_init");
+		if (init_function == NULL) {
+			fprintf(stderr, "[!] K7: Init function not found in plugin '%s':%s\n", modulePath, dlerror());
+		} else {
+			return init_function(parent, k7::module);
+		}
+	}
+	return JS_undefined;
+}
+
 Handle<Value> k7::read(const char* path) {
 	FILE* file = fopen(path, "rb");
 	if (file == NULL) {
@@ -361,6 +387,10 @@ int k7::main (int argc, char **argv, char **env) {
 	Context::Scope context_scope(context);
 
 	k7::setup(context->Global(), argc, argv, env);
+
+	// TODO: If we use libevent, we should schedule the execution of this on
+	// to the libevent loop, otherwise we'll have code running in different threads,
+	// which is something we want to avoid.
 	EXEC("system.shell.command();")
 
 	V8::RemoveMessageListeners(k7::onMessage);

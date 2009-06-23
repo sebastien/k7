@@ -97,7 +97,7 @@ FUNCTION(evbuf_readln,PWRAP(evbuffer,buf)) {
 	free(str);
 	RETURN_SCOPED(retstr);
 } END
-	
+
 FUNCTION(evbuf_read,PWRAP(evbuffer,buf),PINT(file_des),PINT(max_bytes)) {
 	size_t justread = evbuffer_read(buf,file_des,max_bytes);
 	RETURN_INT(justread);
@@ -179,7 +179,7 @@ MODULE {
 	BIND("buffer_readln",evbuf_readln);
 	BIND("event_add",le_event_add);
 	BIND("event_del",le_event_del);
-	BIND("event_loop",le_event_loop);
+	//BIND("event_loop",le_event_loop);
 	BIND("make_socket_nonblocking",le_make_socket_nonblocking);
 	SET_int("EV_TIMEOUT",EV_TIMEOUT);
 	SET_int("EV_READ",EV_READ);
