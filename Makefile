@@ -30,13 +30,13 @@ MODULES               =$(wildcard lib/*.cpp lib/*/*.cpp lib/*/*/*.cpp lib/*/*/*/
 MODULES_JS            =$(wildcard lib/*.js lib/*/*.js lib/*/*/*.js lib/*/*/*/*.js)
 MODULES_JS_H          =$(MODULES_JS:lib/%.js=build/include/%.js.h)
 OBJECTS               =$(SOURCES:src/%.cpp=build/%.o)
-SOBJECTS              =$(MODULES:lib/%.cpp=build/%.o)
 SOBJECTS              =
 PLUGINS               =$(MODULES:lib/%.cpp=build/plugins/%.so)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 
 # Options
 DEBUG             =0
+STATIC            =0
 
 # Modules
 CURL              =$(shell locate include/curl/curl.h)
@@ -76,6 +76,11 @@ endif
 
 ifeq ($(DEBUG),1)
 	CPPFLAGS          += -g
+endif
+
+ifeq ($(STATIC),1)
+	CPPFLAGS          += -DSTATIC
+	SOBJECTS           =$(MODULES:lib/%.cpp=build/%.o)
 endif
 
 .PHONY: options info xinfo
@@ -173,6 +178,7 @@ build/plugins/%.o: lib/%.cpp  $(HEADERS)
 
 build/plugins/%.so: build/plugins/%.o
 	$(CPP) $(CPPFLAGS) -shared -o $@ $<
+	strip $@
 
 build/include/%.js.h: lib/%.js $(JS2H)
 	@mkdir -p `dirname $@` || true

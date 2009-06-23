@@ -67,6 +67,8 @@ V8 will be downloaded automatically to your 'deps/v8' directory.
 You have a couple of options that you can activate:
 
 >   make compact    # Builds a compressed K7 executable
+>   make DEBUG=1    # Enables debugging mode
+>   make STATIC=1   # Embeds K7 modules within the executable
 >   make LIBTASK=1  # Embeds libtask and provides a 'yield' feature
 
 --

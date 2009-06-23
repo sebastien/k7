@@ -33,26 +33,26 @@
 
 // Imports the symbols from standard libraries that can be found in the
 // "lib" directory of the source tree
-/*
-IMPORT(system_modules);
-IMPORT(system_shell);
-IMPORT(system_posix);
-IMPORT(system_engine);
-IMPORT(data_formats_json);
-IMPORT(net_http_server_shttpd);
-#ifdef WITH_FCGI
-IMPORT(net_http_server_fcgi);
+#ifdef STATIC
+	IMPORT(system_modules);
+	IMPORT(system_shell);
+	IMPORT(system_posix);
+	IMPORT(system_engine);
+	IMPORT(data_formats_json);
+	IMPORT(net_http_server_shttpd);
+	#ifdef WITH_FCGI
+	IMPORT(net_http_server_fcgi);
+	#endif
+	#ifdef WITH_CURL
+	IMPORT(net_http_client_curl);
+	#endif
+	#ifdef WITH_LIBTASK
+	IMPORT(core_concurrency_libtask);
+	#endif
+	#ifdef WITH_LIBEVENT
+	IMPORT(core_concurrency_libevent);
+	#endif 
 #endif
-#ifdef WITH_CURL
-IMPORT(net_http_client_curl);
-#endif
-#ifdef WITH_LIBTASK
-IMPORT(core_concurrency_libtask);
-#endif
-#ifdef WITH_LIBEVENT
-IMPORT(core_concurrency_libevent);
-#endif 
-*/
 
 /**
  * Sets up the K7 environment, loading the module system and the shell.
@@ -79,10 +79,10 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 	OBJECT_SET(k7::module("system"), "ENV",    js_env);
 	OBJECT_SET(k7::module("system"), "GLOBAL", JS_GLOBAL);
 
+#ifndef STATIC
 	k7::dynload(global, "build/plugins/system/modules/modules.so");
 	k7::dynload(global, "build/plugins/system/shell/shell.so");
-
-/*
+#else
 	LOAD("system.modules",      system_modules);
 	LOAD("system.shell",        system_shell);
 
@@ -93,19 +93,19 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 	LOAD("system.engine",          system_engine);
 	LOAD("data.formats.json",      data_formats_json);
 	LOAD("net.http.server.shttpd", net_http_server_shttpd);
-#ifdef WITH_FCGI
+	#ifdef WITH_FCGI
 	LOAD("net.http.server.fcgi",   net_http_server_fcgi);
-#endif
-#ifdef WITH_CURL
+	#endif
+	#ifdef WITH_CURL
 	LOAD("net.http.client.curl",   net_http_client_curl);
-#endif
-#ifdef WITH_LIBEVENT
+	#endif
+	#ifdef WITH_LIBEVENT
 	LOAD("core.concurrency.libevent",  core_concurrency_libevent);
-#endif
-#ifdef WITH_LIBTASK
+	#endif
+	#ifdef WITH_LIBTASK
 	LOAD("core.concurrency.libtask",   core_concurrency_libtask);
+	#endif
 #endif
-*/
 }
 
 // ----------------------------------------------------------------------------
