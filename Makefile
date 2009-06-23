@@ -48,6 +48,16 @@ ifeq  ($(PLATFORM),Darwin)
 	LIB_ICONV          = -liconv
 	BUILD_LIBS        += $(LIB_ICONV)
 endif
+
+ifeq ($(DEBUG),1)
+	CPPFLAGS          += -g
+endif
+
+ifeq ($(STATIC),1)
+	CPPFLAGS          += -DSTATIC
+	SOBJECTS           =$(MODULES:lib/%.cpp=build/%.o)
+endif
+
 ifneq ($(strip $(CURL)),)
 	CPPFLAGS          +=-DWITH_CURL
 	LIB_CURL           = -lcurl
@@ -72,16 +82,11 @@ ifeq ($(LIBTASK),1)
 	CPPFLAGS          += -DWITH_LIBTASK
 	LIB_TASK           = deps/libtask/libtask.a
 	BUILD_BINLIBS     += $(LIB_TASK)
+ifeq ($(STATIC),0)
+	SOBJECTS      += build/core/concurrency/libtask/libtask.o
+endif
 endif
 
-ifeq ($(DEBUG),1)
-	CPPFLAGS          += -g
-endif
-
-ifeq ($(STATIC),1)
-	CPPFLAGS          += -DSTATIC
-	SOBJECTS           =$(MODULES:lib/%.cpp=build/%.o)
-endif
 
 .PHONY: options info xinfo
 
