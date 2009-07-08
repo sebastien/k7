@@ -5,7 +5,7 @@
 // Author            : Isaac Schulter                            <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 23-Jun-2009
+// Last modification : 08-Jul-2009
 // ----------------------------------------------------------------------------
 
 #include <v8.h>
@@ -16,6 +16,7 @@
 #include <string.h>
 #include <string>
 #include <time.h>
+#include <sys/stat.h>
 
 #include <dlfcn.h>
 
@@ -81,8 +82,8 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 	OBJECT_SET(k7::module("system"), "GLOBAL", JS_GLOBAL);
 
 	#ifndef STATIC
-		k7::dynload(global, "build/plugins/system/modules/modules.so");
-		k7::dynload(global, "build/plugins/system/shell/shell.so");
+		k7::dynload("build/plugins/system/modules/modules.so", global);
+		k7::dynload("build/plugins/system/shell/shell.so",     global);
 	#else
 		LOAD("system.modules",      system_modules);
 		LOAD("system.shell",        system_shell);
@@ -254,6 +255,56 @@ Handle<Object> k7::module(const char* fullName) {
 	return k7::module(JS_GLOBAL, fullName, NULL);
 }
 
+Handle<Value> k7::locate  (const char* moduleName) {
+	return k7::locate(moduleName, ".");
+}
+
+Handle<Value> k7::locate  (const char* moduleName, const char* inPath) {
+	// Basically takes the given inPath, use it as a prefix for the given
+	// moduleName, replacing the '.' by separators.
+	struct stat stat_info;
+	int  path_len = strlen(inPath);
+	int  name_len = strlen(moduleName);
+	char* module_path    = (char*)malloc(name_len + 1 + path_len + 3 + 1);
+	char* module_name    = module_path + path_len;
+	strcpy(module_path, inPath);
+	// We add an extra OS_SEPARATOR if not there
+	if (module_path[path_len - 1] != OS_SEPARATOR) {
+		module_path[path_len] = OS_SEPARATOR;
+		module_name += 1;
+	}
+	strcpy(module_name, moduleName);
+	// We replace os separators by '.'
+	for (int i=0 ; i < name_len ; i++) {
+		if (module_name[i] == OS_SEPARATOR) {
+			module_name[i] = '.';
+		}
+	}
+	module_name[name_len + 0] = '.';
+	module_name[name_len + 1] = 's';
+	module_name[name_len + 2] = 'o';
+	module_name[name_len + 3] = '\0';
+	// If we can't access the .so file, we'll try the .js version
+	if ( stat(module_path, &stat_info) == -1 ) {
+		module_name[name_len + 1] = 'j';
+		module_name[name_len + 2] = 's';
+		// If we still can't use it
+		if ( stat(module_path, &stat_info) == -1 ) {
+			free(module_path);
+			return  JS_undefined;
+		} else {
+			Handle<String> res = JS_str(module_path);
+			free(module_path);
+			return res;
+		}
+	} else {
+		Handle<String> res = JS_str(module_path);
+		free(module_path);
+		return res;
+	}
+}
+
+
 FUNCTION(module_toString) {
 	return OBJECT_GET(THIS, "__name__");
 } END
@@ -321,7 +372,7 @@ Handle<Object> k7::module(Handle<Object>  parent, const char* moduleName, const 
 	}
 }
 
-Handle<Value> k7::dynload (Handle<Object> parent, const char* modulePath) {
+Handle<Value> k7::dynload (const char* modulePath, Handle<Object> parent) {
 	void* k7_plugin;
 	Handle<Object> (*init_function)(Handle<Object> global, K7_MODULE_CREATOR_T) = NULL;
 	k7_plugin = dlopen(modulePath, RTLD_NOW);

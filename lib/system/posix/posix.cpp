@@ -419,6 +419,7 @@ MODULE
 	// Custom extensions
 	BIND("isFile",    posix_isFile);
 	BIND("isDir",     posix_isDir);
+	// TODO: exists
 	SET_int("O_RDWR",    O_RDWR);
 	SET_int("O_RDONLY",  O_RDONLY);
 	SET_int("O_WRONLY",  O_WRONLY);

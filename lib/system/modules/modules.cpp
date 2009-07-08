@@ -41,6 +41,12 @@ FUNCTION(module_ensure)
 }
 END
 
+FUNCTION(module_locate, PSTR(moduleName))
+{
+	return k7::locate(*moduleName);
+}
+END
+
 FUNCTION(module_update)
 {
 	ARG_COUNT(2)
@@ -56,6 +62,7 @@ MODULE
 	#include "modules.js.h"
 	BIND("has",     module_has);
 	BIND("load",    module_load);
+	BIND("locate",  module_locate);
 	BIND("ensure",  module_ensure);
 	BIND("update",  module_update);
 	EXEC(MODULES_JS)

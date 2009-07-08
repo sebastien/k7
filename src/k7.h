@@ -5,7 +5,7 @@
 // Author            : Isaac Schulter.                           <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 23-Jun-2009
+// Last modification : 08-Jul-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_H__
@@ -14,6 +14,8 @@
 #include <v8.h>
 #include "macros.h"
 #include <assert.h>
+
+#define OS_SEPARATOR '/'
 
 using namespace v8;
 
@@ -36,10 +38,13 @@ namespace k7 {
 
 	Handle<Value>  read    (const char* path);
 
+	Handle<Value>  locate  (const char* moduleName);
+	Handle<Value>  locate  (const char* moduleName, const char* inPath);
+
 	Handle<Object> module  (const char* fullName);
 	Handle<Object> module  (Handle<Object> parent, const char* moduleName, const char* fullName);
 
-	Handle<Value>  dynload (Handle<Object> parent, const char* modulePath);
+	Handle<Value>  dynload (const char* modulePath, Handle<Object> parent);
 
 	int       main    (int argc, char **argv, char **env);
 
