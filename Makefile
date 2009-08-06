@@ -41,12 +41,14 @@ STATIC            =0
 # Modules
 CURL              =$(shell locate include/curl/curl.h)
 FCGI              =$(shell locate include/fastcgi.h)
-LIBEVENT          =1
+LIBEVENT          =0
 LIBTASK           =0
 
 ifeq  ($(PLATFORM),Darwin)
 	LIB_ICONV          = -liconv
 	BUILD_LIBS        += $(LIB_ICONV)
+	# We disable the DYNAMIC (shared library) feature on Darwin
+	STATIC             = 1
 endif
 
 ifeq ($(DEBUG),1)
