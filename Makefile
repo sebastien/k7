@@ -58,6 +58,7 @@ endif
 ifeq ($(STATIC),1)
 	CPPFLAGS          += -DSTATIC
 	SOBJECTS           =$(MODULES:lib/%.cpp=build/%.o)
+	PLUGINS            =
 endif
 
 ifneq ($(strip $(CURL)),)
