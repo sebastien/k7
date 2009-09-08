@@ -117,6 +117,7 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 // ----------------------------------------------------------------------------
 
 void k7::trace (Handle<Message> message) {
+	// TODO: Use http://code.google.com/p/ekko/source/browse/trunk/src/main.cc?r=15#17
 	if (message.IsEmpty()) {
 		// V8 didn't provide any extra information about this error; just
 		// print the exception.
