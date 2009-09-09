@@ -35,8 +35,8 @@ PLUGINS               =$(MODULES:lib/%.cpp=build/plugins/%.so)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 
 # Options
-DEBUG             =0
-STATIC            =0
+DEBUG             =1
+STATIC            =1
 
 # Modules
 CURL              =$(shell locate include/curl/curl.h)

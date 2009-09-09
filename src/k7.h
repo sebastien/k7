@@ -5,7 +5,7 @@
 // Author            : Isaac Schulter.                           <i@foohack.com>
 // ----------------------------------------------------------------------------
 // Creation date     : 27-Sep-2008
-// Last modification : 08-Jul-2009
+// Last modification : 09-Sep-2009
 // ----------------------------------------------------------------------------
 
 #ifndef __K7_H__
@@ -22,9 +22,7 @@ using namespace v8;
 namespace k7 {
 
 	void           setup   (Handle<Object> global,int argc, char** argv, char** env);
-	void           trace   (const v8::TryCatch* try_catch);
-	void           trace   (Handle<Message> message);
-	void           onMessage (Handle<Message> message, Handle<Value> data);
+	void           trace   (v8::TryCatch &try_catch);
 
 	bool           execute (const char* source);
 	bool           execute (const char* source, const char* fromFileName);
