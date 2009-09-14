@@ -304,7 +304,7 @@ def build_node( bld ):
 	if bld.env["USE_DEBUG"]:
 		native_cc.clone("debug")
 	### node lib
-	node = bld.new_task_gen("cxx", "program")
+	node = bld.new_task_gen("cxx", "staticlib")
 	node.name         = "node"
 	node.target       = "node"
 	node.source = """
@@ -384,7 +384,7 @@ def build_k7( bld ):
 		deps/node/src
 		deps/v8/include
 	"""
-	k7.uselib_local = "evcom ev eio http_parser coupling"
+	k7.uselib_local = "evcom ev eio http_parser coupling node"
 	k7.uselib       = "UDNS V8 EXECINFO DL"
 	k7.chmod        = 0755
 	if bld.env["USE_DEBUG"]:
