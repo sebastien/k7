@@ -1,0 +1,7 @@
+prefix=@PREFIX@
+includedir=${prefix}/include/node
+
+Name: node
+Description: v8 powered non-browser javascript
+Version: @VERSION@
+Cflags: @CCFLAGS@ @CPPFLAGS@ -I${includedir} 

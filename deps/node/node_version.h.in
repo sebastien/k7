@@ -1,0 +1,11 @@
+#ifndef node_version_h
+#define node_version_h
+
+#ifdef NDEBUG
+# define NODE_VERSION "@VERSION@"
+#else
+# define NODE_VERSION "@VERSION@ (debug)"
+#endif
+#define NODE_CFLAGS "@CCFLAGS@ @CPPFLAGS@ -I@PREFIX@/include/node"
+
+#endif /* node_version_h */
