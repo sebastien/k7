@@ -163,8 +163,6 @@ deps/v8:
 
 deps/node: deps/v8
 	cd deps && git clone git://github.com/ry/node.git && cd node && rm -rf v8 && ln -s ../v8 . \
-	&& sed -i 's|node = bld.new_task_gen("cxx", "program")|node = bld.new_task_gen("cxx", "staticlib")|g' deps/node/wscript \
-	&& sed -i 's|int main|int node_main|g' deps/node/src/node.cc
 
 deps/mongoose:
 	cd deps && svn checkout http://mongoose.googlecode.com/svn/trunk/ mongoose
@@ -188,8 +186,13 @@ deps/libevent/.libs/libevent.a: deps/libevent
 deps/shttpd/src/libshttpd.a:
 	cd deps/shttpd/src && make unix LIBS="-ldl -lpthread"
 
-deps/node/build/default/libnode.a: deps/node
-	cd deps/node && ./configure && make
+deps/node/Makefile: deps/node
+	sed -i 's|node = bld.new_task_gen("cxx", "program")|node = bld.new_task_gen("cxx", "staticlib")|g' deps/node/wscript
+	sed -i 's|int main|int node_main|g' deps/node/src/node.cc
+	cd deps/node && ./configure
+
+deps/node/build/default/libnode.a: deps/node deps/node/Makefile
+	cd deps/node && make
 
 build/%.o: src/%.cpp $(HEADERS) build deps/v8
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
