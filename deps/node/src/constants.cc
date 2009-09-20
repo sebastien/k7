@@ -1,25 +1,30 @@
-#include "node.h"
-#include "constants.h"
+// Copyright 2009 Ryan Dahl <ry@tinyclouds.org>
+#include <constants.h>
 
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+namespace node {
 
 using namespace v8;
-using namespace node;
 
-void
-node::DefineConstants (Handle<Object> target)
-{
-  NODE_DEFINE_CONSTANT(target, RAW);
-  NODE_DEFINE_CONSTANT(target, UTF8);
-  NODE_DEFINE_CONSTANT(target, ASCII);
-
+void DefineConstants(Handle<Object> target) {
   // file access modes
   NODE_DEFINE_CONSTANT(target, O_RDONLY);
   NODE_DEFINE_CONSTANT(target, O_WRONLY);
   NODE_DEFINE_CONSTANT(target, O_RDWR);
+
+  NODE_DEFINE_CONSTANT(target, S_IFREG);
+  NODE_DEFINE_CONSTANT(target, S_IFDIR);
+  NODE_DEFINE_CONSTANT(target, S_IFCHR);
+  NODE_DEFINE_CONSTANT(target, S_IFBLK);
+  NODE_DEFINE_CONSTANT(target, S_IFIFO);
+  NODE_DEFINE_CONSTANT(target, S_IFLNK);
+  NODE_DEFINE_CONSTANT(target, S_IFSOCK);
 
 #ifdef O_CREAT
   NODE_DEFINE_CONSTANT(target, O_CREAT);
@@ -561,6 +566,6 @@ node::DefineConstants (Handle<Object> target)
 #ifdef SIGUNUSED
   NODE_DEFINE_CONSTANT(target, SIGUNUSED);
 #endif
-
 }
 
+}  // namespace node

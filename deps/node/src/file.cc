@@ -58,6 +58,58 @@ EIOPromise::Create (void)
   return promise;
 }
 
+static Persistent<FunctionTemplate> stats_constructor_template;
+
+static Local<Object>
+BuildStatsObject (struct stat * s)
+{
+  HandleScope scope;
+
+  Local<Object> stats =
+    stats_constructor_template->GetFunction()->NewInstance();
+
+  /* ID of device containing file */
+  stats->Set(DEV_SYMBOL, Integer::New(s->st_dev));
+
+  /* inode number */
+  stats->Set(INO_SYMBOL, Integer::New(s->st_ino));
+
+  /* protection */
+  stats->Set(MODE_SYMBOL, Integer::New(s->st_mode));
+
+  /* number of hard links */
+  stats->Set(NLINK_SYMBOL, Integer::New(s->st_nlink));
+
+  /* user ID of owner */
+  stats->Set(UID_SYMBOL, Integer::New(s->st_uid));
+
+  /* group ID of owner */
+  stats->Set(GID_SYMBOL, Integer::New(s->st_gid));
+
+  /* device ID (if special file) */
+  stats->Set(RDEV_SYMBOL, Integer::New(s->st_rdev));
+
+  /* total size, in bytes */
+  stats->Set(SIZE_SYMBOL, Integer::New(s->st_size));
+
+  /* blocksize for filesystem I/O */
+  stats->Set(BLKSIZE_SYMBOL, Integer::New(s->st_blksize));
+
+  /* number of blocks allocated */
+  stats->Set(BLOCKS_SYMBOL, Integer::New(s->st_blocks));
+
+  /* time of last access */
+  stats->Set(ATIME_SYMBOL, NODE_UNIXTIME_V8(s->st_atime));
+
+  /* time of last modification */
+  stats->Set(MTIME_SYMBOL, NODE_UNIXTIME_V8(s->st_mtime));
+
+  /* time of last status change */
+  stats->Set(CTIME_SYMBOL, NODE_UNIXTIME_V8(s->st_ctime));
+
+  return scope.Close(stats);
+}
+
 int
 EIOPromise::After (eio_req *req)
 {
@@ -86,64 +138,30 @@ EIOPromise::After (eio_req *req)
       break;
 
     case EIO_OPEN:
-    case EIO_WRITE:
       argc = 1;
       argv[0] = Integer::New(req->result);
       break;
 
+    case EIO_WRITE:
+      argc = 1;
+      argv[0] = Integer::New(req->result);
+      assert(req->ptr2);
+      delete req->ptr2;
+      break;
+
     case EIO_STAT:
     {
-      Local<Object> stats = Object::New();
       struct stat *s = reinterpret_cast<struct stat*>(req->ptr2);
-      stats->Set(DEV_SYMBOL, Integer::New(s->st_dev)); /* ID of device containing file */
-      stats->Set(INO_SYMBOL, Integer::New(s->st_ino)); /* inode number */
-      stats->Set(MODE_SYMBOL, Integer::New(s->st_mode)); /* protection */
-      stats->Set(NLINK_SYMBOL, Integer::New(s->st_nlink)); /* number of hard links */
-      stats->Set(UID_SYMBOL, Integer::New(s->st_uid)); /* user ID of owner */
-      stats->Set(GID_SYMBOL, Integer::New(s->st_gid)); /* group ID of owner */
-      stats->Set(RDEV_SYMBOL, Integer::New(s->st_rdev)); /* device ID (if special file) */
-      stats->Set(SIZE_SYMBOL, Integer::New(s->st_size)); /* total size, in bytes */
-      stats->Set(BLKSIZE_SYMBOL, Integer::New(s->st_blksize)); /* blocksize for filesystem I/O */
-      stats->Set(BLOCKS_SYMBOL, Integer::New(s->st_blocks)); /* number of blocks allocated */
-      stats->Set(ATIME_SYMBOL, NODE_UNIXTIME_V8(s->st_atime)); /* time of last access */
-      stats->Set(MTIME_SYMBOL, NODE_UNIXTIME_V8(s->st_mtime)); /* time of last modification */
-      stats->Set(CTIME_SYMBOL, NODE_UNIXTIME_V8(s->st_ctime)); /* time of last status change */
       argc = 1;
-      argv[0] = stats;
+      argv[0] = BuildStatsObject(s);
       break;
     }
 
     case EIO_READ:
     {
       argc = 2;
-      // FIXME the following is really ugly!
-      if (promise->encoding_ == RAW) {
-        if (req->result == 0) {
-          argv[0] = Local<Value>::New(Null());
-          argv[1] = Integer::New(0);
-        } else {
-          char *buf = reinterpret_cast<char*>(req->ptr2);
-          size_t len = req->result;
-          Local<Array> array = Array::New(len);
-          for (unsigned int i = 0; i < len; i++) {
-            unsigned char val = reinterpret_cast<const unsigned char*>(buf)[i];
-            array->Set(Integer::New(i), Integer::New(val));
-          }
-          argv[0] = array;
-          argv[1] = Integer::New(req->result);
-        }
-      } else {
-        // UTF8
-        if (req->result == 0) {
-          // eof
-          argv[0] = Local<Value>::New(Null());
-          argv[1] = Integer::New(0);
-        } else {
-          char *buf = reinterpret_cast<char*>(req->ptr2);
-          argv[0] = String::New(buf, req->result);
-          argv[1] = Integer::New(req->result);
-        }
-      }
+      argv[0] = Encode(req->ptr2, req->result, promise->encoding_);
+      argv[1] = Integer::New(req->result);
       break;
     }
 
@@ -304,6 +322,7 @@ Open (const Arguments& args)
  * 1 data      the data to write (string = utf8, array = raw)
  * 2 position  if integer, position to write at in the file.
  *             if null, write from the current position
+ * 3 encoding  
  */
 static Handle<Value>
 Write (const Arguments& args)
@@ -317,29 +336,16 @@ Write (const Arguments& args)
   int fd = args[0]->Int32Value();
   off_t offset = args[2]->IsNumber() ? args[2]->IntegerValue() : -1;
 
-  char *buf = NULL;
-  size_t len = 0;
-
-  if (args[1]->IsString()) {
-    // utf8 encoding
-    Local<String> string = args[1]->ToString();
-    len = string->Utf8Length();
-    buf = reinterpret_cast<char*>(malloc(len));
-    string->WriteUtf8(buf, len);
-
-  } else if (args[1]->IsArray()) {
-    // raw encoding
-    Local<Array> array = Local<Array>::Cast(args[1]);
-    len = array->Length();
-    buf = reinterpret_cast<char*>(malloc(len));
-    for (unsigned int i = 0; i < len; i++) {
-      Local<Value> int_value = array->Get(Integer::New(i));
-      buf[i] = int_value->Int32Value();
-    }
-
-  } else {
-    return ThrowException(BAD_ARGUMENTS);
+  enum encoding enc = ParseEncoding(args[3]);
+  ssize_t len = DecodeBytes(args[1], enc);
+  if (len < 0) {
+    Local<Value> exception = Exception::TypeError(String::New("Bad argument"));
+    return ThrowException(exception);
   }
+
+  char * buf = new char[len];
+  ssize_t written = DecodeWrite(buf, len, args[1], enc);
+  assert(written == len);
 
   return scope.Close(EIOPromise::Write(fd, buf, len, offset));
 }
@@ -351,7 +357,7 @@ Write (const Arguments& args)
  * 1 length    integer. length to read
  * 2 position  if integer, position to read from in the file.
  *             if null, read from the current position
- * 3 encoding  either node.UTF8 or node.RAW
+ * 3 encoding
  */
 static Handle<Value>
 Read (const Arguments& args)
@@ -366,10 +372,7 @@ Read (const Arguments& args)
   size_t len = args[1]->IntegerValue();
   off_t pos = args[2]->IsNumber() ? args[2]->IntegerValue() : -1;
 
-  enum encoding encoding = RAW;
-  if (args[3]->IsInt32()) {
-    encoding = static_cast<enum encoding>(args[3]->Int32Value());
-  }
+  enum encoding encoding = ParseEncoding(args[3]);
 
   return scope.Close(EIOPromise::Read(fd, len, pos, encoding));
 }
@@ -389,4 +392,9 @@ File::Initialize (Handle<Object> target)
   NODE_SET_METHOD(target, "stat", Stat);
   NODE_SET_METHOD(target, "unlink", Unlink);
   NODE_SET_METHOD(target, "write", Write);
+
+  Local<FunctionTemplate> t = FunctionTemplate::New();
+  stats_constructor_template = Persistent<FunctionTemplate>::New(t);
+  target->Set(String::NewSymbol("Stats"),
+      stats_constructor_template->GetFunction());
 }

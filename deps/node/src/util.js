@@ -19,8 +19,8 @@ node.inherits = function (ctor, superCtor) {
   ctor.prototype.constructor = ctor;
 };
 
-node.assert = function (x) {
-  if (!(x)) throw (msg || "assertion error");
+node.assert = function (x, msg) {
+  if (!(x)) throw new Error(msg || "assertion error");
 };
 
 // This is useful for dealing with raw encodings.
@@ -92,17 +92,27 @@ node.path = new function () {
 };
 
 print = function (x) {
-  return node.stdio.write(x);
+  node.stdio.write(x);
 };
 
 puts = function (x) {
-  return print(x.toString() + "\n");
-};
-
-p = function (x) {
-  return puts(JSON.stringify(x));
+  print(x.toString() + "\n");
 };
 
 node.debug = function (x) {
-  return node.stdio.writeError("DEBUG: " + x.toString() + "\n");
+  node.stdio.writeError("DEBUG: " + x.toString() + "\n");
+};
+
+node.error = function (x) {
+  node.stdio.writeError(x.toString() + "\n");
+};
+
+p = function (x) {
+  if (x === null) {
+    node.error("null");
+  } else if (x === NaN) {
+    node.error("NaN");
+  } else {
+    node.error(JSON.stringify(x) || "undefined");
+  }
 };

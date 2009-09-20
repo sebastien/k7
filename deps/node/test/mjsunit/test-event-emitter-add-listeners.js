@@ -1,4 +1,4 @@
-include("mjsunit.js");
+include("common.js");
 
 var e = new node.EventEmitter();
 
@@ -19,7 +19,7 @@ e.addListener("hello", function (a, b) {
 
 puts("start");
 
-e.emit("hello", ["a", "b"]);
+e.emit("hello", "a", "b");
 
 process.addListener("exit", function () {
   assertArrayEquals(["hello"], events_new_listener_emited);

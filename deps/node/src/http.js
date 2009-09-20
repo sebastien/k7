@@ -160,19 +160,45 @@ function OutgoingMessage () {
   node.EventEmitter.call(this);
 
   this.output = [];
+  this.outputEncodings = [];
 
   this.closeOnFinish = false;
   this.chunked_encoding = false;
   this.should_keep_alive = true;
   this.use_chunked_encoding_by_default = true;
 
+  this.flushing = false;
+
   this.finished = false;
 }
 node.inherits(OutgoingMessage, node.EventEmitter);
 
 OutgoingMessage.prototype.send = function (data, encoding) {
-  data.encoding = data.constructor === String ? encoding || "ascii" : "raw";
+  var length = this.output.length;
+
+  if (length === 0) {
+    this.output.push(data);
+    encoding = encoding || (data.constructor === Array ? "raw" : "ascii");
+    this.outputEncodings.push(encoding);
+    return;
+  }
+
+  var lastEncoding = this.outputEncodings[length-1];
+  var lastData = this.output[length-1];
+
+  if ((lastEncoding === encoding) ||
+      (!encoding && data.constructor === lastData.constructor)) {
+    if (lastData.constructor === String) {
+      this.output[length-1] = lastData + data;
+    } else {
+      this.output[length-1] = lastData.concat(data);
+    }
+    return;
+  }
+
   this.output.push(data);
+  encoding = encoding || (data.constructor === Array ? "raw" : "ascii");
+  this.outputEncodings.push(encoding);
 };
 
 OutgoingMessage.prototype.sendHeaderLines = function (first_line, headers) {
@@ -243,7 +269,11 @@ OutgoingMessage.prototype.sendBody = function (chunk, encoding) {
     this.send(chunk, encoding);
   }
 
-  this.flush();
+  if (this.flushing) {
+    this.flush();
+  } else {
+    this.flushing = true;
+  }
 };
 
 OutgoingMessage.prototype.flush = function () {
@@ -347,11 +377,11 @@ function createIncomingMessageStream (connection, incoming_listener) {
       incoming.statusCode = info.statusCode;
     }
 
-    stream.emit("incoming", [incoming, info.should_keep_alive]);
+    stream.emit("incoming", incoming, info.should_keep_alive);
   });
 
   connection.addListener("body", function (chunk) {
-    incoming.emit("body", [chunk]);
+    incoming.emit("body", chunk);
   });
 
   connection.addListener("message_complete", function () {
@@ -371,8 +401,11 @@ function flushMessageQueue (connection, queue) {
       if (connection.readyState !== "open" && connection.readyState !== "writeOnly") {
         return false;
       }
-      var out = message.output.shift();
-      connection.send(out, out.encoding);
+
+      var data = message.output.shift();
+      var encoding = message.outputEncodings.shift();
+
+      connection.send(data, encoding);
     }
 
     if (!message.finished) break;
@@ -421,7 +454,7 @@ function connectionListener (connection) {
     });
     responses.push(res);
 
-    connection.server.emit("request", [req, res]);
+    connection.server.emit("request", req, res);
   });
 }
 
@@ -477,7 +510,7 @@ node.http.createClient = function (port, host) {
     });
 
     var req = requests.shift();
-    req.emit("response", [res]);
+    req.emit("response", res);
   });
 
   return client;
@@ -517,6 +550,8 @@ node.http.Client.prototype.put = function (uri, headers) {
 node.http.cat = function (url, encoding) {
   var promise = new node.Promise();
 
+  encoding = encoding || "utf8";
+
   var uri = node.http.parseUri(url);
   var client = node.http.createClient(uri.port || 80, uri.host);
   var req = client.get(uri.path || "/");
@@ -529,13 +564,13 @@ node.http.cat = function (url, encoding) {
 
   req.finish(function (res) {
     if (res.statusCode < 200 || res.statusCode >= 300) {
-      promise.emitError([res.statusCode]);
+      promise.emitError(res.statusCode);
       return;
     }
     res.setBodyEncoding(encoding);
     res.addListener("body", function (chunk) { content += chunk; });
     res.addListener("complete", function () {
-      promise.emitSuccess([content]);
+      promise.emitSuccess(content);
     });
   });
 

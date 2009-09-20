@@ -8,7 +8,7 @@ node.EventEmitter.prototype.addListener = function (type, listener) {
     if (!this._events.hasOwnProperty(type)) this._events[type] = [];
     // To avoid recursion in the case that type == "newListeners"! Before
     // adding it to the listeners, first emit "newListeners".
-    this.emit("newListener", [type, listener]);
+    this.emit("newListener", type, listener);
     this._events[type].push(listener);
   }
   return this;
@@ -51,7 +51,13 @@ node.Promise.prototype.wait = function () {
       })
       .block();
 
-  if (had_error) throw ret;
+  if (had_error) {
+    if (ret) {
+      throw ret;
+    } else {
+      throw new Error("Promise completed with error (No arguments given.)");
+    }
+  }
   return ret;
 };
 

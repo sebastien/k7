@@ -1,4 +1,5 @@
-include("mjsunit.js");
+node.debug("load test-module-loading.js");
+include("common.js");
 var a = require("fixtures/a.js");
 var d = require("fixtures/b/d.js");
 var d2 = require("fixtures/b/d.js");
@@ -35,4 +36,6 @@ process.addListener("exit", function () {
 
   assertInstanceof(d2.D, Function);
   assertEquals("D done", d2.D());
+
+  puts("exit");
 });
