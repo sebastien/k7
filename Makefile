@@ -94,7 +94,16 @@ endif
 ifeq ($(NODE),1)
 	CPPFLAGS          +=-DWITH_NODE
 	LIB_NODE           = deps/node/build/default/libnode.a
-	BUILD_BINLIBS     += $(LIB_NODE)
+	INCLUDES          += -Ideps/node -Ideps/node/src -Ideps/node/deps/coupling 
+	INCLUDES          += -Ideps/node/deps/evcom -Ideps/node/deps/http_parser -Ideps/node/deps/libeio -Ideps/node/deps/libev -Ideps/node/deps/udns
+	INCLUDES          += -Ideps/node/build/default/src
+	BUILD_BINLIBS     += $(LIB_NODE) \
+	                     deps/node/build/default/libevcom.a \
+	                     deps/node/build/default/libhttp_parser.a \
+	                     deps/node/build/default/libcoupling.a \
+	                     deps/node/build/default/deps/libev/libev.a \
+	                     deps/node/build/default/deps/udns/libudns.a \
+	                     deps/node/build/default/deps/libeio/libeio.a
 endif
 
 
@@ -154,7 +163,8 @@ deps/v8:
 
 deps/node: deps/v8
 	cd deps && git clone git://github.com/ry/node.git && cd node && rm -rf v8 && ln -s ../v8 . \
-	&& sed -i 's|node = bld.new_task_gen("cxx", "program")|node = bld.new_task_gen("cxx", "staticlib")|g' deps/node/wscript
+	&& sed -i 's|node = bld.new_task_gen("cxx", "program")|node = bld.new_task_gen("cxx", "staticlib")|g' deps/node/wscript \
+	&& sed -i 's|int main|int node_main|g' deps/node/src/node.cc
 
 deps/mongoose:
 	cd deps && svn checkout http://mongoose.googlecode.com/svn/trunk/ mongoose
