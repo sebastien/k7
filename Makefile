@@ -41,8 +41,7 @@ STATIC                =1
 # Modules
 CURL                  =$(shell locate include/curl/curl.h)
 FCGI                  =$(shell locate include/fastcgi.h)
-LIBEVENT              =0
-LIBTASK               =0
+LIBTASK               =1
 LIBNODE               =1
 
 ifeq  ($(PLATFORM),Darwin)
@@ -71,15 +70,6 @@ ifneq ($(strip $(FCGI)),)
 	CPPFLAGS          +=-DWITH_FCGI
 	LIB_FCGI          := -lfcgi
 	BUILD_LIBS        += $(LIB_FCGI)
-endif
-
-ifeq ($(LIBEVENT),1)
-	# NOTE: We exepect libevent-2.0, which is not widely available,
-	# so people willing to use a specific library .so or .a can redefine
-	# the LIB_EVENT variable
-	CPPFLAGS          +=-DWITH_LIBEVENT
-	LIB_EVENT         := deps/libevent/.libs/libevent.a
-	BUILD_LIBS        += $(LIB_EVENT)
 endif
 
 ifeq ($(LIBTASK),1)
@@ -146,7 +136,7 @@ info:
 	@echo "NOTE: build requires svn, scons and python in addition to gcc"
 
 xinfo:
-	@echo "Options:\nCURL=$(CURL) FCGI=$(FCGI) LIBNODE=$(LIBNODE) LIBEVENT=$(LIBEVENT) LIBTASK=$(LIBTASK)\n"
+	@echo "Options:\nCURL=$(CURL) FCGI=$(FCGI) LIBNODE=$(LIBNODE) LIBTASK=$(LIBTASK)\n"
 	@echo "Modules (native):\n$(MODULES)\n"
 	@echo "Modules (js):\n$(MODULES_JS)\n"
 	@echo "Sources:\n$(SOURCES)\n"
@@ -158,7 +148,7 @@ options:
 	@echo
 	@echo "CURL     - Enables curl bindings     (default=1, requires curl.h)"
 	@echo "FCGI     - Enables FCGI bindings     (default=1, requires fastcgi.h)"
-	@echo "LIBEVENT - Enables libevent2 bindings (default=1, requires event2/event.h)"
+	@echo "LIBNODE  - Enables libnode bindings  (default=1)"
 	@echo "LIBTASK  - Enables libtask bindings  (default=0)"
 
 api: doc/k7-api.html

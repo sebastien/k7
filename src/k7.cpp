@@ -48,9 +48,6 @@
 	#ifdef WITH_CURL
 	IMPORT(net_http_client_curl);
 	#endif
-	#ifdef WITH_LIBEVENT
-	IMPORT(core_concurrency_libevent);
-	#endif 
 #endif
 
 #ifdef WITH_LIBTASK
@@ -108,9 +105,6 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 		#endif
 		#ifdef WITH_CURL
 		LOAD("net.http.client.curl",   net_http_client_curl);
-		#endif
-		#ifdef WITH_LIBEVENT
-		LOAD("core.concurrency.libevent",  core_concurrency_libevent);
 		#endif
 	#endif
 	#ifdef WITH_LIBNODE
