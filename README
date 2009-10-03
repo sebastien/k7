@@ -45,9 +45,9 @@ extensions:
     library that is designed in the UNIX philosophy, that does not have too many
     dependencies and do on thing well (like 'libcurl', for instance).
 
-The k7 source code is separated in two main folders:
+The K7 source code is separated in two main folders:
 
-  - 'src' which contains the k7 main source code, which is basically the
+  - 'src' which contains the K7 main source code, which is basically the
     interpreter enhanced with a couple of simple primitives and the
     macros.
 
@@ -70,6 +70,7 @@ You have a couple of options that you can activate:
 >   make DEBUG=1    # Enables debugging mode
 >   make STATIC=1   # Embeds K7 modules within the executable
 >   make LIBTASK=1  # Embeds libtask and provides a 'yield' feature
+>   make LIBNODE=1  # Embeds libnode and provides a lot of async-network libraries
 
 --
 [V8]          V8 VM, <http://code.google.com/p/v8/> 

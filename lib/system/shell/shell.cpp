@@ -28,8 +28,10 @@ FUNCTION(shell_print)
 			printf(" ");
 		}
 		ARG_str(str,i);
-		printf("%s\n", *str);
+		// We do for % within the string
+		printf("%s", *str);
 	}
+	printf("\n");
 	return Boolean::New(true);
 }
 END
@@ -44,6 +46,7 @@ FUNCTION(shell_printn)
 			printf(" ");
 		}
 		ARG_str(str,i);
+		// We do for % within the string
 		printf("%s", *str);
 	}
 	return Boolean::New(true);

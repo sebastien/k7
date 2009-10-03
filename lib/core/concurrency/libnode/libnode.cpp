@@ -56,7 +56,7 @@ MODULE
 	// to it's namespace node.EventEmitter in Load() bellow.
 	node::EventEmitter::Initialize(process_template);
 	Persistent<Context> context = Context::New(NULL, process_template->InstanceTemplate());
-	Context::Scope context_scope(context);
+	//Context::Scope context_scope(context);
 
 	// Sets up Node's globals
 	SET("process",      context->Global());
@@ -88,6 +88,10 @@ MODULE
 	node::HTTPConnection::Initialize(http);
 
 	BIND("runLoop", node_runLoop);
+
+	// We load the JavaScript runtime
+	#include "libnode.js.h"
+	EXEC(LIBNODE_JS)
 }
 END
 
