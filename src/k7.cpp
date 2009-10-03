@@ -56,6 +56,10 @@
 IMPORT(core_concurrency_libtask);
 #endif
 
+#ifdef WITH_LIBNODE
+IMPORT(core_concurrency_libnode);
+#endif
+
 /**
  * Sets up the K7 environment, loading the module system and the shell.
  *
@@ -82,6 +86,8 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 	OBJECT_SET(k7::module("system"), "GLOBAL", JS_GLOBAL);
 
 	#ifndef STATIC
+		// In dynamic mode, we only need modules and shell modules, the
+		// rest will be loaded on demand
 		k7::dynload("build/plugins/system/modules/modules.so", global);
 		k7::dynload("build/plugins/system/shell/shell.so",     global);
 	#else
@@ -104,6 +110,9 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 		#ifdef WITH_LIBEVENT
 		LOAD("core.concurrency.libevent",  core_concurrency_libevent);
 		#endif
+	#endif
+	#ifdef WITH_LIBNODE
+	LOAD("core.concurrency.libnode",   core_concurrency_libnode);
 	#endif
 	#ifdef WITH_LIBTASK
 	LOAD("core.concurrency.libtask",   core_concurrency_libtask);
@@ -286,7 +295,6 @@ Handle<Value> k7::locate  (const char* moduleName, const char* inPath) {
 	}
 }
 
-
 FUNCTION(module_toString) {
 	return OBJECT_GET(THIS, "__name__");
 } END
@@ -392,7 +400,6 @@ Handle<Value> k7::read(const char* path) {
 	delete[] chars;
 	return result;
 }
-
 
 /**
  * This is the main function that sets up the K7 environment

@@ -35,21 +35,21 @@ PLUGINS               =$(MODULES:lib/%.cpp=build/plugins/%.so)
 INCLUDES              =-I$(V8_INCLUDE) -Isrc -Ideps
 
 # Options
-DEBUG             =1
-STATIC            =1
+DEBUG                 =1
+STATIC                =1
 
 # Modules
-CURL              =$(shell locate include/curl/curl.h)
-FCGI              =$(shell locate include/fastcgi.h)
-NODE              =1
-LIBEVENT          =0
-LIBTASK           =0
+CURL                  =$(shell locate include/curl/curl.h)
+FCGI                  =$(shell locate include/fastcgi.h)
+LIBEVENT              =0
+LIBTASK               =0
+LIBNODE               =1
 
 ifeq  ($(PLATFORM),Darwin)
-	LIB_ICONV          = -liconv
+	LIB_ICONV         := -liconv
 	BUILD_LIBS        += $(LIB_ICONV)
 	# We disable the DYNAMIC (shared library) feature on Darwin
-	STATIC             = 1
+	STATIC            := 1
 endif
 
 ifeq ($(DEBUG),1)
@@ -64,12 +64,12 @@ endif
 
 ifneq ($(strip $(CURL)),)
 	CPPFLAGS          +=-DWITH_CURL
-	LIB_CURL           = -lcurl
+	LIB_CURL          := -lcurl
 	BUILD_LIBS        += $(LIB_CURL)
 endif
 ifneq ($(strip $(FCGI)),)
 	CPPFLAGS          +=-DWITH_FCGI
-	LIB_FCGI           = -lfcgi
+	LIB_FCGI          := -lfcgi
 	BUILD_LIBS        += $(LIB_FCGI)
 endif
 
@@ -78,32 +78,45 @@ ifeq ($(LIBEVENT),1)
 	# so people willing to use a specific library .so or .a can redefine
 	# the LIB_EVENT variable
 	CPPFLAGS          +=-DWITH_LIBEVENT
-	LIB_EVENT          = deps/libevent/.libs/libevent.a
+	LIB_EVENT         := deps/libevent/.libs/libevent.a
 	BUILD_LIBS        += $(LIB_EVENT)
 endif
 
 ifeq ($(LIBTASK),1)
 	CPPFLAGS          += -DWITH_LIBTASK
-	LIB_TASK           = deps/libtask/libtask.a
+	LIB_TASK          := deps/libtask/libtask.a
 	BUILD_BINLIBS     += $(LIB_TASK)
 ifeq ($(STATIC),0)
 	SOBJECTS      += build/core/concurrency/libtask/libtask.o
 endif
 endif
 
-ifeq ($(NODE),1)
-	CPPFLAGS          +=-DWITH_NODE
-	LIB_NODE           = deps/node/build/default/libnode.a
+ifeq ($(LIBNODE),1)
+	CPPFLAGS          +=-DWITH_LIBNODE -DEV_MULTIPLICITY=0
+	LIB_NODE          := deps/node/build/default/libnode.a
 	INCLUDES          += -Ideps/node -Ideps/node/src -Ideps/node/deps/coupling 
 	INCLUDES          += -Ideps/node/deps/evcom -Ideps/node/deps/http_parser -Ideps/node/deps/libeio -Ideps/node/deps/libev -Ideps/node/deps/udns
 	INCLUDES          += -Ideps/node/build/default/src
+	NODE_MODE         :=default
+ifeq ($(DEBUG),1)
+	NODE_OPTIONS      += --debug
+	NODE_MODE         :=debug
+endif
+	# FIXME: For some strange reason, I have to add '-lev', even if the libev.a is given, otherwise
+	# I get the following error:
+	# build/k7.o: In function `ev_default_loop_uc':
+	# /home/sebastien/Projects/WIP/K7/deps/node/deps/libev/ev.h:449: undefined reference to `ev_default_loop_ptr'
+	# build/k7.o: In function `ev_default_loop':
+	# /home/sebastien/Projects/WIP/K7/deps/node/deps/libev/ev.h:463: undefined reference to `ev_default_loop_init'
+	# collect2: ld a retourné 1 code d'état d'exécution
+	#BUILD_LIBS        += -lev
 	BUILD_BINLIBS     += $(LIB_NODE) \
-	                     deps/node/build/default/libevcom.a \
-	                     deps/node/build/default/libhttp_parser.a \
-	                     deps/node/build/default/libcoupling.a \
-	                     deps/node/build/default/deps/libev/libev.a \
-	                     deps/node/build/default/deps/udns/libudns.a \
-	                     deps/node/build/default/deps/libeio/libeio.a
+	                     deps/node/build/$(NODE_MODE)/libevcom.a \
+	                     deps/node/build/$(NODE_MODE)/libhttp_parser.a \
+	                     deps/node/build/$(NODE_MODE)/libcoupling.a \
+	                     deps/node/build/$(NODE_MODE)/deps/libev/libev.a \
+	                     deps/node/build/$(NODE_MODE)/deps/udns/libudns.a \
+	                     deps/node/build/$(NODE_MODE)/deps/libeio/libeio.a
 endif
 
 
@@ -111,6 +124,15 @@ endif
 
 k7: $(OBJECTS) $(SOBJECTS) $(PLUGINS) $(BUILD_BINLIBS) $(V8_BINARY)
 	$(CPP) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) $(SOBJECTS) -rdynamic -o $(PRODUCT) $(BUILD_BINLIBS) $(BUILD_LIBS)
+
+sconfig.mk: sconfig.conf
+	./tools/sconfig --conf=$< --output=$@
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),distclean)
+-include tools/sconfig.mk
+endif
+endif
 
 info:
 	@echo "K7 build system"
@@ -124,7 +146,7 @@ info:
 	@echo "NOTE: build requires svn, scons and python in addition to gcc"
 
 xinfo:
-	@echo "Options:\nCURL=$(CURL) FCGI=$(FCGI) NODE=$(NODE) LIBEVENT=$(LIBEVENT) LIBTASK=$(LIBTASK)\n"
+	@echo "Options:\nCURL=$(CURL) FCGI=$(FCGI) LIBNODE=$(LIBNODE) LIBEVENT=$(LIBEVENT) LIBTASK=$(LIBTASK)\n"
 	@echo "Modules (native):\n$(MODULES)\n"
 	@echo "Modules (js):\n$(MODULES_JS)\n"
 	@echo "Sources:\n$(SOURCES)\n"
@@ -192,7 +214,7 @@ deps/node/Makefile: deps/node
 	cd deps/node && ./configure
 
 deps/node/build/default/libnode.a: deps/node deps/node/Makefile
-	cd deps/node && make
+	cd deps/node && ./tools/waf --debug
 
 build/%.o: src/%.cpp $(HEADERS) build deps/v8
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $< -o $@
