@@ -39,6 +39,7 @@
 	IMPORT(system_shell);
 	IMPORT(system_posix);
 	IMPORT(system_engine);
+	IMPORT(core_extend);
 	IMPORT(data_formats_json);
 	IMPORT(net_http_server_shttpd);
 	#ifdef WITH_FCGI
@@ -99,6 +100,7 @@ void k7::setup (v8::Handle<v8::Object> global,int argc, char** argv, char** env)
 
 		LOAD("system.posix",           system_posix);
 		LOAD("system.engine",          system_engine);
+		LOAD("core.extend",            core_extend);
 		LOAD("data.formats.json",      data_formats_json);
 		LOAD("net.http.server.shttpd", net_http_server_shttpd);
 		#ifdef WITH_FCGI
